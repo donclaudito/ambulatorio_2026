@@ -17,14 +17,33 @@ const ReportOutput = ({ report, evaluationRequests, onCopy }) => {
     setIsGeneratingAih(true);
     setIsAihModalOpen(true);
     try {
-      const prompt = `Com base nestes dados cirúrgicos: "${editableReport}", gere um resumo para os campos 20 (Sinais e Sintomas), 21 (Justificativa) e 22 (Resultados de Exames) de uma AIH. Responda em formato JSON com as chaves "section20", "section21", "section22".`;
+      const prompt = `Com base nestes dados cirúrgicos: "${editableReport}", gere um resumo para os campos 20 (Sinais e Sintomas), 21 (Justificativa) e 22 (Resultados de Exames) de uma AIH. Responda APENAS com um JSON puro com as chaves "section20", "section21", "section22". Não adicione explicações.`;
+      
       const response = await generateClinicalTextUnified(prompt);
-      const data = JSON.parse(response.replace(/```json|```/g, ''));
-      setGeneratedAih(data);
+      
+      // Limpeza robusta do JSON
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      const cleanJson = jsonMatch ? jsonMatch[0] : response;
+      const rawData = JSON.parse(cleanJson);
+      
+      // Normalização dos dados (caso venham aninhados ou com chaves diferentes)
+      const normalizedData = {};
+      ['section20', 'section21', 'section22'].forEach((key, idx) => {
+        let val = rawData[key] || Object.values(rawData)[idx] || "";
+        
+        // Se for um objeto, tenta extrair o texto dele
+        if (typeof val === 'object' && val !== null) {
+          val = Object.values(val).join(' ');
+        }
+        
+        normalizedData[key] = String(val);
+      });
+
+      setGeneratedAih(normalizedData);
     } catch (error) {
-      console.error(error);
+      console.error('Erro ao processar AIH:', error);
       setGeneratedAih({
-        section20: "Erro ao gerar com IA.",
+        section20: "Erro ao gerar ou processar resposta da IA.",
         section21: "Favor preencher manualmente.",
         section22: ""
       });

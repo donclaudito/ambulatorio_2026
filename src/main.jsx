@@ -3,6 +3,16 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 
+// Cleanup stray service workers from previous projects on this port
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const registration of registrations) {
+      registration.unregister();
+      console.log('Antigo Service Worker removido com sucesso.');
+    }
+  });
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
