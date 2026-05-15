@@ -23,7 +23,7 @@ const SectionHeader = ({ icon, title }) => (
 const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
   const [activeModal, setActiveModal] = useState(null);
   const [modalData, setModalData] = useState({ title: '', items: [], targetField: '' });
-  const [isLoading, setIsLoading] = useState({ anamnesis: false, physicalExam: false, procedure: false, asa: false });
+  const [isLoading, setIsLoading] = useState({ anamnesis: false, physicalExam: false, procedure: false, asa: false, cid10: false });
   // reasonDataMap tem prioridade: entradas oficiais nunca são sobrescritas pelo localStorage
   const [allReasons, setAllReasons] = useState(() => {
     const custom = getCustomReasons();
@@ -121,7 +121,7 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
       return;
     }
     
-    const loadingKey = field === 'procedure' ? 'procedure' : field === 'asaClassification' ? 'asa' : field;
+    const loadingKey = field === 'procedure' ? 'procedure' : field === 'asaClassification' ? 'asa' : field === 'cid10' ? 'cid10' : field;
     setIsLoading(prev => ({ ...prev, [loadingKey]: true }));
 
     try {
@@ -145,6 +145,8 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
       } else if (field === 'asaClassification') {
         const imcText = (formData.patientWeight && formData.patientHeight) ? ` IMC Calculado: ${(parseFloat(formData.patientWeight) / Math.pow(parseFloat(formData.patientHeight) / 100, 2)).toFixed(1)}.` : '';
         prompt = `Aja como um anestesiologista avaliador. Avalie os seguintes dados do paciente: ${demographics}${biometrics}${imcText} Comorbidades relatadas: ${formData.comorbidities.join(', ') || 'Nenhuma'}. Medicamentos em uso: ${formData.medicationsInUse || 'Nenhum'}. Sugira a classificação de Risco Cirúrgico ASA (I a VI). Retorne a sugestão e explique brevemente os critérios utilizados para essa classificação com base nestes dados. Seja direto e não invente dados adicionais.`;
+      } else if (field === 'cid10') {
+        prompt = `Aja como um codificador médico sênior. Baseado neste quadro clínico: ${reasonContext}${associatedText} (procedimento proposto: ${procedureContext}), retorne APENAS o código CID-10 exato correspondente (ex: 'K40.9'). Não retorne explicações ou descrições, apenas o código bruto.`;
       }
       
       const text = await generateClinicalTextUnified(prompt);
@@ -359,6 +361,26 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
               value={formData.proposedProcedure}
               onChange={(e) => setFormData({...formData, proposedProcedure: e.target.value})}
               placeholder="Ex: Hernioplastia Inguinal..."
+            />
+          </div>
+
+          <div>
+            <div className="flex justify-between items-end mb-1">
+              <label className="label-text">CID-10 Principal</label>
+              <button 
+                type="button"
+                onClick={() => handleAIField('cid10')}
+                disabled={isLoading.cid10 || (!formData.primaryReason && !formData.customReason)}
+                className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase tracking-tighter"
+              >
+                {isLoading.cid10 ? "Buscando..." : "✨ Auto CID"}
+              </button>
+            </div>
+            <input 
+              className="input-field font-semibold text-emerald-700"
+              value={formData.cid10 || ''}
+              onChange={(e) => setFormData({...formData, cid10: e.target.value})}
+              placeholder="Ex: K40.9"
             />
           </div>
         </div>

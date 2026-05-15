@@ -3,7 +3,7 @@ import Modal from './Modal';
 import { generateClinicalTextUnified } from '../services/aiService';
 import { useReactToPrint } from 'react-to-print';
 
-const ReportOutput = ({ report, evaluationRequests, onCopy }) => {
+const ReportOutput = ({ report, evaluationRequests, cid10, onCopy }) => {
   const [isAihModalOpen, setIsAihModalOpen] = useState(false);
   const [isGeneratingAih, setIsGeneratingAih] = useState(false);
   const [generatedAih, setGeneratedAih] = useState(null);
@@ -24,25 +24,20 @@ const ReportOutput = ({ report, evaluationRequests, onCopy }) => {
     setIsGeneratingAih(true);
     setIsAihModalOpen(true);
     try {
-      const prompt = `Com base nestes dados cirúrgicos: "${editableReport}", gere um resumo para os campos 20 (Sinais e Sintomas), 21 (Justificativa) e 22 (Resultados de Exames) de uma AIH. Responda APENAS com um JSON puro com as chaves "section20", "section21", "section22". Não adicione explicações.`;
+      const prompt = `Com base nestes dados cirúrgicos: "${editableReport}", deduza o código CID-10 principal e gere um resumo para os campos 20 (Sinais e Sintomas), 21 (Justificativa) e 22 (Resultados de Exames) de uma AIH. Responda APENAS com um JSON puro com as chaves "cid10", "section20", "section21", "section22". Não adicione explicações.`;
       
       const response = await generateClinicalTextUnified(prompt);
       
-      // Limpeza robusta do JSON
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       const cleanJson = jsonMatch ? jsonMatch[0] : response;
       const rawData = JSON.parse(cleanJson);
       
-      // Normalização dos dados (caso venham aninhados ou com chaves diferentes)
       const normalizedData = {};
-      ['section20', 'section21', 'section22'].forEach((key, idx) => {
+      ['cid10', 'section20', 'section21', 'section22'].forEach((key, idx) => {
         let val = rawData[key] || Object.values(rawData)[idx] || "";
-        
-        // Se for um objeto, tenta extrair o texto dele
         if (typeof val === 'object' && val !== null) {
           val = Object.values(val).join(' ');
         }
-        
         normalizedData[key] = String(val);
       });
 
@@ -165,6 +160,7 @@ const ReportOutput = ({ report, evaluationRequests, onCopy }) => {
         title="Laudo para Solicitação de AIH"
         onClose={() => setIsAihModalOpen(false)}
       >
+
         {isGeneratingAih ? (
           <div className="flex flex-col items-center py-12 space-y-4">
             <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
@@ -172,6 +168,23 @@ const ReportOutput = ({ report, evaluationRequests, onCopy }) => {
           </div>
         ) : generatedAih && (
           <div className="space-y-6">
+            {generatedAih.cid10 && (
+              <div className="flex justify-start animate-fade-in">
+                <div className="bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-xl flex items-center gap-6 shadow-sm">
+                  <div>
+                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest block mb-1">Código CID-10 (IA)</span>
+                    <span className="text-2xl font-black text-emerald-800 tracking-tight">{generatedAih.cid10}</span>
+                  </div>
+                  <button 
+                    onClick={() => onCopy(generatedAih.cid10)} 
+                    className="text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors uppercase tracking-widest"
+                  >
+                    Copiar
+                  </button>
+                </div>
+              </div>
+            )}
+            
             {['section20', 'section21', 'section22'].map((section, idx) => (
               <div key={section} className="space-y-2 animate-fade-in" style={{animationDelay: `${idx * 0.1}s`}}>
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">

@@ -23,7 +23,8 @@ const initialFormState = {
   asaClassification: '',
   conduct: '',
   imageExams: [],
-  relatedDiagnoses: ''
+  relatedDiagnoses: '',
+  cid10: ''
 };
 
 function App() {
@@ -40,6 +41,10 @@ function App() {
 
   const handleGenerateReport = () => {
     let report = `**${formData.proposedProcedure.toUpperCase()}**\n\n`;
+    
+    if (formData.cid10) {
+      report += `CID-10: ${formData.cid10}\n`;
+    }
     
     const reason = formData.primaryReason === 'Outro...' ? formData.customReason : formData.primaryReason;
     report += `Motivo do Encaminhamento: ${reason}${formData.associatedReason ? ` e ${formData.associatedReason}` : ''}\n`;
@@ -174,6 +179,7 @@ function App() {
             <ReportOutput 
               report={generatedReport} 
               evaluationRequests={evaluationRequests}
+              cid10={formData.cid10}
               onCopy={handleCopy}
             />
           ) : (
