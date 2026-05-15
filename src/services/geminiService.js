@@ -45,6 +45,20 @@ export async function generateClinicalText(prompt) {
     }
 
     const payload = {
+        system_instruction: {
+            parts: [{ text: `Você é um assistente médico especializado em cirurgia. 
+            Gere laudos profissionais seguindo OBRIGATORIAMENTE esta estrutura:
+            1. Título
+            2. Motivo
+            3. Procedimento Proposto
+            4. Anamnese e Exame Físico (Padrão SOAP: Subjetivo, Objetivo, Avaliação, Plano)
+            5. Antecedentes de Comorbidade
+            6. Medicamentos em Uso
+            7. Exames de Imagem
+            8. Conduta e Recomendações
+            
+            Use Markdown.` }]
+        },
         contents: [{ role: "user", parts: [{ text: prompt }] }]
     };
     

@@ -7,7 +7,7 @@ import {
   commonMedications,
   predefinedImageExams
 } from '../data/clinicalData';
-import { generateClinicalText } from '../services/geminiService';
+import { generateClinicalTextUnified } from '../services/aiService';
 import Modal from './Modal';
 
 const SectionHeader = ({ icon, title }) => (
@@ -65,7 +65,7 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
         ? `Gere *apenas o texto* de uma anamnese e queixa principal resumida para um paciente que será submetido ao procedimento de ${formData.proposedProcedure}. Seja conciso, sem cabeçalhos.`
         : `Gere *apenas o texto* de um exame físico resumido (2-3 frases) para um paciente que será submetido ao procedimento de ${formData.proposedProcedure}.`;
       
-      const text = await generateClinicalText(prompt);
+      const text = await generateClinicalTextUnified(prompt);
       setFormData(prev => ({ ...prev, [field]: text }));
     } catch (error) {
       console.error(error);
@@ -75,6 +75,7 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
   };
 
   const toggleComorbidity = (value) => {
+    // 1. Determina as mudanças de estado do formulário primeiro
     setFormData(prev => {
       if (value === "Nenhuma Comorbidade Conhecida") {
         return { ...prev, comorbidities: [value], medicationsInUse: "" };
@@ -83,25 +84,29 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
         ? prev.comorbidities.filter(c => c !== value)
         : [...prev.comorbidities.filter(c => c !== "Nenhuma Comorbidade Conhecida"), value];
       
-      if (!prev.comorbidities.includes(value) && comorbidityMedicationsMap[value]) {
-        setModalData({
-          title: `Medicamentos para ${value}`,
-          items: comorbidityMedicationsMap[value],
-          targetField: 'medicationsInUse'
-        });
-        setActiveModal('medication');
-      }
-      
       return { ...prev, comorbidities: newComorbidities };
     });
+
+    // 2. Dispara efeitos colaterais (modais) fora do setFormData para evitar erro de renderização
+    if (!formData.comorbidities.includes(value) && comorbidityMedicationsMap[value]) {
+      setModalData({
+        title: `Medicamentos para ${value}`,
+        items: comorbidityMedicationsMap[value],
+        targetField: 'medicationsInUse'
+      });
+      setActiveModal('medication');
+    }
   };
 
   const handleModalSelection = (selectedItems) => {
+    const { targetField } = modalData;
+    
     setFormData(prev => {
-      const current = prev[modalData.targetField] ? prev[modalData.targetField].split(',').map(s => s.trim()) : [];
+      const current = prev[targetField] ? prev[targetField].split(',').map(s => s.trim()) : [];
       const combined = [...new Set([...current, ...selectedItems])].filter(Boolean).join(', ');
-      return { ...prev, [modalData.targetField]: combined };
+      return { ...prev, [targetField]: combined };
     });
+    
     setActiveModal(null);
   };
 

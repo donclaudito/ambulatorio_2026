@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
-import { generateClinicalText } from '../services/geminiService';
+import { generateClinicalTextUnified } from '../services/aiService';
 
 const ReportOutput = ({ report, evaluationRequests, onCopy }) => {
   const [isAihModalOpen, setIsAihModalOpen] = useState(false);
@@ -18,7 +18,7 @@ const ReportOutput = ({ report, evaluationRequests, onCopy }) => {
     setIsAihModalOpen(true);
     try {
       const prompt = `Com base nestes dados cirúrgicos: "${editableReport}", gere um resumo para os campos 20 (Sinais e Sintomas), 21 (Justificativa) e 22 (Resultados de Exames) de uma AIH. Responda em formato JSON com as chaves "section20", "section21", "section22".`;
-      const response = await generateClinicalText(prompt);
+      const response = await generateClinicalTextUnified(prompt);
       const data = JSON.parse(response.replace(/```json|```/g, ''));
       setGeneratedAih(data);
     } catch (error) {

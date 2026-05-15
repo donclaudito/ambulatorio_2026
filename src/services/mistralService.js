@@ -12,11 +12,23 @@ export async function generateMistralReport(prompt) {
                 'Authorization': `Bearer ${API_KEY}`
             },
             body: JSON.stringify({
-                model: "open-mixtral-8x22b",
+                model: "open-mixtral-8x22b", // Este é o modelo mistral-default do sistema
                 messages: [
                     {
                         role: "system",
-                        content: "Você é um assistente médico especializado em cirurgia. Sua tarefa é gerar laudos cirúrgicos profissionais, precisos e bem formatados."
+                        content: `Você é um assistente médico especializado em cirurgia. Sua tarefa é gerar laudos cirúrgicos profissionais, precisos e bem formatados.
+                        
+O laudo deve seguir OBRIGATORIAMENTE esta estrutura:
+1. Título
+2. Motivo
+3. Procedimento Proposto
+4. Anamnese e Exame Físico (Padrão SOAP: Subjetivo, Objetivo, Avaliação, Plano)
+5. Antecedentes de Comorbidade
+6. Medicamentos em Uso
+7. Exames de Imagem
+8. Conduta e Recomendações
+
+Use Markdown para formatação.`
                     },
                     {
                         role: "user",
