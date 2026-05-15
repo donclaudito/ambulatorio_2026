@@ -17,7 +17,7 @@ const MistralReportGenerator = ({ initialData, onCopy }) => {
     setIsGenerating(true);
     setError('');
     
-    const prompt = `Aja como um revisor médico sênior. Sua tarefa é aprimorar a redação técnica do seguinte laudo, tornando-a mais profissional, coesa e gramaticalmente correta, mas mantendo 100% de FIDELIDADE aos fatos clínicos inseridos pelo usuário. NÃO adicione informações novas. NÃO invente dados. Use terminologia cirúrgica precisa.\n\nDados de Entrada:\n${surgeryData}`;
+    const prompt = `Considere o seguinte laudo como base: '${surgeryData}'. Sua função é reescrever este texto para torná-lo mais claro, profissional e bem estruturado, preservando todas as informações originais. Não altere o conteúdo nem adicione informações novas. O resultado deve ser apenas uma versão aprimorada do laudo fornecido, sem repetições.`;
 
     try {
       const report = await generateMistralReport(prompt);

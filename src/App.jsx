@@ -53,10 +53,8 @@ function App() {
       if (formData.patientWeight) report += `, Peso: ${formData.patientWeight}kg`;
       if (formData.patientHeight) report += `, Altura: ${formData.patientHeight}cm`;
       if (imc) report += `, IMC: ${imc}`;
-      report += `\n`;
+      report += `\n\n`;
     }
-
-    report += `Procedimento Proposto: ${formData.proposedProcedure}\n\n`;
     
     report += `Anamnese/Queixa Principal:\n${formData.anamnesis}\n\n`;
     report += `Exame Físico:\n${formData.physicalExam}\n\n`;
@@ -85,12 +83,21 @@ function App() {
     
     setGeneratedReport(report);
 
-    const baseRequest = (specialty) => `SOLICITAÇÃO DE AVALIAÇÃO ${specialty}\n\nPrezados colegas,\n\nSolicito avaliação pré-operatória para o procedimento de ${formData.proposedProcedure}.\n\nComorbidades: ${formData.comorbidities.join(', ') || 'Nenhuma'}\nMedicações: ${formData.medicationsInUse || 'Nenhuma'}\n\nAtenciosamente.`;
+    let imcValue = 'Não informado';
+    if (formData.patientWeight && formData.patientHeight) {
+      const weight = parseFloat(formData.patientWeight);
+      const height = parseFloat(formData.patientHeight) / 100;
+      if (weight > 0 && height > 0) {
+        imcValue = (weight / (height * height)).toFixed(1);
+      }
+    }
+
+    const baseRequest = (specialtyName) => `SOLICITAÇÃO DE AVALIAÇÃO ${specialtyName.toUpperCase()}\n\nPrezados colegas,\n\nSolicito avaliação ${specialtyName.toLowerCase()} pré-operatória para o paciente, visando o procedimento de ${formData.proposedProcedure}, considerando as seguintes comorbidades: ${formData.comorbidities.join(', ') || 'Nenhuma'}, uso de medicamentos: ${formData.medicationsInUse || 'Nenhum'}, classificação ASA: ${formData.asaClassification ? formData.asaClassification.split('\n')[0] : 'Não avaliada'}, e IMC: ${imcValue}.\n\nAtenciosamente.`;
     
     setEvaluationRequests({
-      anesthetic: baseRequest('PRÉ-ANESTÉSICA'),
-      cardio: baseRequest('CARDIOLÓGICA'),
-      pulmo: baseRequest('PNEUMOLÓGICA')
+      anesthetic: baseRequest('anestésica'),
+      cardio: baseRequest('cardiovascular'),
+      pulmo: baseRequest('pneumológica')
     });
   };
 
