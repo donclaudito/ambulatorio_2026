@@ -12,7 +12,7 @@ export async function generateMistralReport(prompt) {
                 'Authorization': `Bearer ${API_KEY}`
             },
             body: JSON.stringify({
-                model: "open-mixtral-8x22b", // Este é o modelo mistral-default do sistema
+                model: "open-mixtral-8x7b", // Alterado de 8x22b para 8x7b para evitar erro de tier limits
                 messages: [
                     {
                         role: "system",
