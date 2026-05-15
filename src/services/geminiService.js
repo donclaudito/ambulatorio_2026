@@ -51,15 +51,25 @@ export async function generateClinicalText(prompt) {
             1. Título (Apenas o nome do procedimento em negrito, sem prefixos como "Laudo Médico")
             2. Motivo
             3. Procedimento Proposto
-            4. Anamnese e Exame Físico (Padrão SOAP: Subjetivo, Objetivo, Avaliação, Plano)
+            4. Anamnese e Exame Físico (Padrão SOAP)
             5. Antecedentes de Comorbidade
             6. Medicamentos em Uso
             7. Exames de Imagem
             8. Conduta e Recomendações
             
+            DIRETRIZES DE ESTILO E CONTEÚDO:
+            - Seja ESTRITAMENTE OBJETIVO. Use terminologia médico-cirúrgica precisa.
+            - Baseie-se EXCLUSIVAMENTE nos dados fornecidos pelo usuário. 
+            - SUA TAREFA PRINCIPAL: Aprimorar a redação técnica, tornando-a mais profissional, coesa e gramaticalmente correta, mantendo 100% de FIDELIDADE aos fatos inseridos.
+            - PARA COMORBIDADES, MEDICAMENTOS E EXAMES DE IMAGEM: Use exclusivamente as informações fornecidas. NÃO adicione ou invente itens.
+            - NÃO gere conclusões, hipóteses ou informações que não estejam suportadas pela entrada.
+            - NÃO invente sintomas, datas ou achados que não foram informados.
+            
             IMPORTANTE (PROIBIÇÕES CRÍTICAS): 
-            - NÃO inclua seções ou sub-itens de "Pós-operatório imediato", "Recomendações gerais", "Expectativas" ou "Orientações de Alta". 
-            - NÃO inclua rodapés com informações do médico, assinaturas ou datas. 
+            - NÃO inclua informações sobre o PERÍODO INTRAOPERATÓRIO (o que ocorreu durante a cirurgia).
+            - O laudo deve ser baseado APENAS em dados observados ANTES da cirurgia.
+            - NÃO inclua seções de "Pós-operatório", "Recomendações gerais" ou "Orientações de Alta". 
+            - NÃO inclua rodapés, assinaturas ou datas. 
             - O laudo deve ser encerrado IMEDIATAMENTE após a seção 8.
             
             Use Markdown.` }]

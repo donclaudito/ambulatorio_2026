@@ -9,7 +9,9 @@ import {
 } from '../data/clinicalData';
 import { generateClinicalTextUnified } from '../services/aiService';
 import { getCustomReasons, saveCustomReason } from '../utils/storageUtils';
+import { findReason } from '../utils/textUtils';
 import Modal from './Modal';
+import ProcedureSelector from './ProcedureSelector';
 
 const SectionHeader = ({ icon, title }) => (
   <div className="flex items-center gap-2 mb-4 border-b border-slate-100 pb-2">
@@ -21,16 +23,36 @@ const SectionHeader = ({ icon, title }) => (
 const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
   const [activeModal, setActiveModal] = useState(null);
   const [modalData, setModalData] = useState({ title: '', items: [], targetField: '' });
-  const [isLoading, setIsLoading] = useState({ anamnesis: false, physicalExam: false });
-  const [allReasons, setAllReasons] = useState({ ...reasonDataMap, ...getCustomReasons() });
+  const [isLoading, setIsLoading] = useState({ anamnesis: false, physicalExam: false, procedure: false });
+  // reasonDataMap tem prioridade: entradas oficiais nunca são sobrescritas pelo localStorage
+  const [allReasons, setAllReasons] = useState(() => {
+    const custom = getCustomReasons();
+    // Filtra apenas entradas customizadas que NÃO existem no banco oficial
+    const customOnly = Object.fromEntries(
+      Object.entries(custom).filter(([key]) => !(key in reasonDataMap))
+    );
+    return { ...reasonDataMap, ...customOnly };
+  });
   const [saveStatus, setSaveStatus] = useState('');
+  const [availableProcedures, setAvailableProcedures] = useState([]);
 
   useEffect(() => {
     const primary = formData.primaryReason;
     const associated = formData.associatedReason;
-    if (!primary) return;
+    if (!primary) {
+      setAvailableProcedures([]);
+      return;
+    }
 
-    let data = allReasons[primary] || allReasons["Outro..."];
+    let data;
+    const found = findReason(allReasons, primary);
+
+    if (found) {
+      data = found.data;
+    } else {
+      // Fallback: usa template genérico de "Outro..."
+      data = allReasons["Outro..."];
+    }
     
     if ((primary === "Hérnia Umbilical" && associated === "Hérnia Epigástrica") ||
         (primary === "Hérnia Epigástrica" && associated === "Hérnia Umbilical")) {
@@ -41,39 +63,100 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
       setActiveModal('dermatology');
     }
 
-    // Only update if something actually changed to avoid "Cannot update a component..." error
-    const needsUpdate = 
-      formData.proposedProcedure !== (data.procedure || formData.proposedProcedure) ||
-      formData.anamnesis !== data.anamnesis ||
-      formData.physicalExam !== data.physicalExam ||
-      formData.conduct !== data.conduct;
+    // Se a demanda tem múltiplos procedimentos, mostrar o seletor
+    const procs = data.procedures || [];
+    setAvailableProcedures(procs);
 
-    if (needsUpdate) {
+    // Pré-selecionar o procedimento padrão:
+    // - Se há array de procedures → usa o primeiro
+    // - Se há procedure único → usa ele
+    // - Se nenhum (custom reason sem procedure) → mantém o que o usuário já digitou
+    const defaultProcedure = procs.length > 0
+      ? procs[0]
+      : (data.procedure || formData.proposedProcedure || '');
+
+    // Lógica inteligente de atualização:
+    // 1. Se for um motivo conhecido (found), atualiza sempre (comportamento padrão)
+    // 2. Se for "Outro...", só preenche o template se o campo estiver vazio
+    const isCustom = primary === "Outro...";
+    
+    const shouldUpdateProcedure = isCustom 
+      ? !formData.proposedProcedure && defaultProcedure 
+      : formData.proposedProcedure !== defaultProcedure;
+      
+    const shouldUpdateAnamnesis = isCustom
+      ? !formData.anamnesis && data.anamnesis
+      : formData.anamnesis !== data.anamnesis;
+
+    const shouldUpdatePhysical = isCustom
+      ? !formData.physicalExam && data.physicalExam
+      : formData.physicalExam !== data.physicalExam;
+
+    const shouldUpdateConduct = isCustom
+      ? !formData.conduct && data.conduct
+      : formData.conduct !== data.conduct;
+
+    if (shouldUpdateProcedure || shouldUpdateAnamnesis || shouldUpdatePhysical || shouldUpdateConduct) {
       setFormData(prev => ({
         ...prev,
-        proposedProcedure: data.procedure || prev.proposedProcedure,
-        anamnesis: data.anamnesis,
-        physicalExam: data.physicalExam,
-        conduct: data.conduct
+        proposedProcedure: shouldUpdateProcedure ? (defaultProcedure || prev.proposedProcedure) : prev.proposedProcedure,
+        anamnesis: shouldUpdateAnamnesis ? data.anamnesis : prev.anamnesis,
+        physicalExam: shouldUpdatePhysical ? data.physicalExam : prev.physicalExam,
+        conduct: shouldUpdateConduct ? data.conduct : prev.conduct
       }));
     }
   }, [formData.primaryReason, formData.associatedReason]);
 
   const handleAIField = async (field) => {
-    if (!formData.proposedProcedure) return;
+    // Determina o contexto clínico (Motivo ou Procedimento)
+    const reasonContext = formData.primaryReason === "Outro..." 
+      ? formData.customReason 
+      : formData.primaryReason;
     
-    setIsLoading(prev => ({ ...prev, [field]: true }));
+    const procedureContext = formData.proposedProcedure || reasonContext;
+    
+    if (!procedureContext && field !== 'procedure') {
+      setSaveStatus('⚠️ Defina um motivo ou procedimento primeiro.');
+      setTimeout(() => setSaveStatus(''), 3000);
+      return;
+    }
+    
+    const loadingKey = field === 'procedure' ? 'procedure' : field;
+    setIsLoading(prev => ({ ...prev, [loadingKey]: true }));
+
     try {
-      const prompt = field === 'anamnesis' 
-        ? `Gere *apenas o texto* de uma anamnese e queixa principal resumida para um paciente que será submetido ao procedimento de ${formData.proposedProcedure}. Seja conciso, sem cabeçalhos.`
-        : `Gere *apenas o texto* de um exame físico resumido (2-3 frases) para um paciente que será submetido ao procedimento de ${formData.proposedProcedure}.`;
+      const associatedText = formData.associatedReason ? ` associada a ${formData.associatedReason}` : '';
+      const demographics = (formData.patientAge || formData.patientSex) 
+        ? `Paciente de ${formData.patientAge || 'idade não informada'} anos, do sexo ${formData.patientSex || 'não informado'}. ` 
+        : '';
+      
+      const biometrics = (formData.patientWeight && formData.patientHeight)
+        ? `Peso: ${formData.patientWeight}kg, Altura: ${formData.patientHeight}cm. `
+        : '';
+
+      let prompt = '';
+
+      if (field === 'procedure') {
+        prompt = `Aja como um cirurgião sênior. ${demographics}${biometrics}Sugira o nome técnico do procedimento cirúrgico principal (apenas o nome, ex: 'Hernioplastia Inguinal') para um quadro de ${reasonContext}${associatedText}. Retorne APENAS o nome do procedimento técnico e preciso.`;
+      } else if (field === 'anamnesis') {
+        prompt = `Aja como um cirurgião sênior. Seja ESTRITAMENTE OBJETIVO. Gere *apenas o texto* de uma anamnese técnica e queixa principal baseada APENAS nestes dados: ${demographics}${biometrics}Quadro clínico: ${reasonContext}${associatedText}. Procedimento: ${procedureContext}. Use terminologia cirúrgica precisa. NÃO invente sintomas. NÃO gere conclusões. Incorpore idade/sexo e dados biométricos naturalmente se relevante.`;
+      } else if (field === 'physicalExam') {
+        prompt = `Aja como um cirurgião sênior. Seja ESTRITAMENTE OBJETIVO. Gere *apenas o texto* de um exame físico técnico resumido baseado APENAS nestes dados: ${demographics}${biometrics}Quadro de ${reasonContext}${associatedText} (procedimento: ${procedureContext}). Use terminologia cirúrgica precisa. Foco em sinais vitais e achados locais. NÃO invente achados.`;
+      }
       
       const text = await generateClinicalTextUnified(prompt);
-      setFormData(prev => ({ ...prev, [field]: text }));
+      
+      if (field === 'procedure') {
+        setFormData(prev => ({ ...prev, proposedProcedure: text }));
+      } else {
+        setFormData(prev => ({ ...prev, [field]: text }));
+      }
     } catch (error) {
       console.error(error);
+      setSaveStatus('❌ Erro na IA. Verifique a chave API.');
+      setTimeout(() => setSaveStatus(''), 3000);
     } finally {
-      setIsLoading(prev => ({ ...prev, [field]: false }));
+      setIsLoading(prev => ({ ...prev, [loadingKey]: false }));
     }
   };
 
@@ -136,6 +219,69 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
       {/* 1. Motivo e Procedimento */}
       <section className="card-section animate-slide-in-top">
         <SectionHeader icon="📋" title="Identificação da Demanda" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          <div>
+            <label className="label-text">Idade</label>
+            <input 
+              type="number" 
+              className="input-field"
+              placeholder="Anos"
+              value={formData.patientAge}
+              onChange={(e) => setFormData({...formData, patientAge: e.target.value})}
+            />
+          </div>
+          <div>
+            <label className="label-text">Sexo</label>
+            <select 
+              className="input-field"
+              value={formData.patientSex}
+              onChange={(e) => setFormData({...formData, patientSex: e.target.value})}
+            >
+              <option value="">--</option>
+              <option value="Masculino">Masc</option>
+              <option value="Feminino">Fem</option>
+            </select>
+          </div>
+          <div>
+            <label className="label-text">Peso (kg)</label>
+            <input 
+              type="number" 
+              className="input-field"
+              placeholder="Ex: 80"
+              value={formData.patientWeight}
+              onChange={(e) => setFormData({...formData, patientWeight: e.target.value})}
+            />
+          </div>
+          <div>
+            <label className="label-text">Altura (cm)</label>
+            <input 
+              type="number" 
+              className="input-field"
+              placeholder="Ex: 175"
+              value={formData.patientHeight}
+              onChange={(e) => setFormData({...formData, patientHeight: e.target.value})}
+            />
+          </div>
+        </div>
+
+        {/* BMI / IMC Display */}
+        {formData.patientWeight && formData.patientHeight && (
+          <div className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">IMC Calculado:</span>
+            {(() => {
+              const weight = parseFloat(formData.patientWeight);
+              const height = parseFloat(formData.patientHeight) / 100;
+              const imc = (weight / (height * height)).toFixed(1);
+              const isHigh = parseFloat(imc) > 35;
+              return (
+                <span className={`text-sm font-black ${isHigh ? 'text-red-600 animate-pulse' : 'text-blue-600'}`}>
+                  {imc} {isHigh ? '(Obesidade Severa)' : ''}
+                </span>
+              );
+            })()}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 gap-4">
           <div>
             <label className="label-text">Motivo Principal</label>
@@ -148,6 +294,17 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
               {Object.keys(allReasons).map(r => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
+
+          {/* Seletor de Procedimentos — aparece quando há múltiplas opções */}
+          {availableProcedures.length >= 2 && (
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+              <ProcedureSelector
+                procedures={availableProcedures}
+                selectedProcedure={formData.proposedProcedure}
+                onSelect={(proc) => setFormData(prev => ({ ...prev, proposedProcedure: proc }))}
+              />
+            </div>
+          )}
 
           {formData.primaryReason === "Outro..." && (
             <div className="flex gap-2 animate-slide-in-top">
@@ -183,7 +340,17 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
           </div>
 
           <div>
-            <label className="label-text">Procedimento Proposto</label>
+            <div className="flex justify-between items-end mb-1">
+              <label className="label-text">Procedimento Proposto</label>
+              <button 
+                type="button"
+                onClick={() => handleAIField('procedure')}
+                disabled={isLoading.procedure || (!formData.primaryReason && !formData.customReason)}
+                className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase tracking-tighter"
+              >
+                {isLoading.procedure ? "Sugerindo..." : "✨ Sugerir"}
+              </button>
+            </div>
             <input 
               className="input-field font-semibold text-blue-700"
               value={formData.proposedProcedure}

@@ -17,7 +17,7 @@ const MistralReportGenerator = ({ initialData, onCopy }) => {
     setIsGenerating(true);
     setError('');
     
-    const prompt = `Gere o laudo clínico para o seguinte caso, seguindo estritamente a estrutura e as PROIBIÇÕES definidas nas suas instruções de sistema:\n\n${surgeryData}`;
+    const prompt = `Aja como um revisor médico sênior. Sua tarefa é aprimorar a redação técnica do seguinte laudo, tornando-a mais profissional, coesa e gramaticalmente correta, mas mantendo 100% de FIDELIDADE aos fatos clínicos inseridos pelo usuário. NÃO adicione informações novas. NÃO invente dados. Use terminologia cirúrgica precisa.\n\nDados de Entrada:\n${surgeryData}`;
 
     try {
       const report = await generateMistralReport(prompt);

@@ -1,18 +1,35 @@
 export const reasonDataMap = {
     "Hérnia Inguinal Direita": {
         procedure: "Hernioplastia Inguinal Direita",
+        procedures: [
+            "Hernioplastia Inguinal Direita (Lichtenstein com Tela)",
+            "Hernioplastia Inguinal Direita Videolaparoscópica (TAPP)",
+            "Hernioplastia Inguinal Direita Videolaparoscópica (TEP)",
+            "Hernioplastia Inguinal Direita sem Tela (Shouldice)"
+        ],
         anamnesis: "Paciente refere dor e/ou desconforto na região inguinal direita, principalmente ao realizar esforços como tossir ou levantar peso. Presença de abaulamento que se torna mais evidente em pé ou ao esforço, e pode reduzir ao deitar.",
         physicalExam: "Ao exame físico: Abdome flácido e indolor à palpação. Presença de abaulamento redutível em região inguinal direita, que se torna mais evidente à manobra de Valsalva. Orifícios herniários palpáveis sem sinais inflamatórios.",
         conduct: "Solicitar: Exames laboratoriais pré-operatórios (Hemograma, Coagulograma, Glicemia, Ureia, Creatinina, Eletrólitos). ECG e RX de tórax. Avaliação do anestesista. Preenchimento de termo de consentimento. Emissão de AIH."
     },
     "Hérnia Inguinal Esquerda": {
         procedure: "Hernioplastia Inguinal Esquerda",
+        procedures: [
+            "Hernioplastia Inguinal Esquerda (Lichtenstein com Tela)",
+            "Hernioplastia Inguinal Esquerda Videolaparoscópica (TAPP)",
+            "Hernioplastia Inguinal Esquerda Videolaparoscópica (TEP)",
+            "Hernioplastia Inguinal Esquerda sem Tela (Shouldice)"
+        ],
         anamnesis: "Paciente refere dor e/ou desconforto na região inguinal esquerda, principalmente ao realizar esforços como tossir ou levantar peso. Presença de abaulamento que se torna mais evidente em pé ou ao esforço, e pode reduzir ao deitar.",
         physicalExam: "Ao exame físico: Abdome flácido e indolor à palpação. Presença de abaulamento redutível em região inguinal esquerda, que se torna mais evidente à manobra de Valsalva. Orifícios herniários palpáveis sem sinais inflamatórios.",
         conduct: "Solicitar: Exames laboratoriais pré-operatórios (Hemograma, Coagulograma, Glicemia, Ureia, Creatinina, Eletrólitos). ECG e RX de tórax. Avaliação do anestesista. Preenchimento de termo de consentimento. Emissão de AIH."
     },
     "Hérnia Umbilical": {
         procedure: "Hernioplastia Umbilical",
+        procedures: [
+            "Hernioplastia Umbilical com Tela",
+            "Hernioplastia Umbilical sem Tela (Mayo)",
+            "Hernioplastia Umbilical Videolaparoscópica"
+        ],
         anamnesis: "Paciente refere abaulamento na região umbilical, que pode ser indolor ou causar desconforto/dor leve, especialmente com esforços ou tosse. Histórico de aumento progressivo da protuberância.",
         physicalExam: "Ao exame físico: Abdome flácido e indolor à palpação. Presença de abaulamento redutível em região umbilical, com anel herniário palpável. Sem sinais inflamatórios.",
         conduct: "Solicitar: Exames laboratoriais pré-operatórios (Hemograma, Coagulograma, Glicemia, Ureia, Creatinina, Eletrólitos). ECG e RX de tórax. Avaliação do anestesista. Preenchimento de termo de consentimento. Emissão de AIH."
@@ -25,12 +42,22 @@ export const reasonDataMap = {
     },
     "Hérnia Incisional": {
         procedure: "Hernioplastia Incisional",
+        procedures: [
+            "Hernioplastia Incisional com Tela (Aberta)",
+            "Hernioplastia Incisional Videolaparoscópica",
+            "Hernioplastia Incisional com Tela (Sublay/Retromuscular)"
+        ],
         anamnesis: "Paciente refere dor e/ou abaulamento no local de uma cicatriz cirúrgica prévia. A protuberância aumenta com o esforço e pode ser acompanhada de desconforto ou dor localizada.",
         physicalExam: "Ao exame físico: Abdome flácido. Presença de abaulamento redutível em cicatriz cirúrgica prévia, com anel herniário palpável. Sem sinais inflamatórios ou de encarceramento.",
         conduct: "Solicitar: Exames laboratoriais pré-operatórios (Hemograma, Coagulograma, Glicemia, Ureia, Creatinina, Eletrólitos). ECG e RX de tórax. Avaliação do anestesista. Preenchimento de termo de consentimento. Emissão de AIH."
     },
     "Colelitíase": {
         procedure: "Colecistectomia Videolaparoscópica",
+        procedures: [
+            "Colecistectomia Videolaparoscópica",
+            "Colecistectomia Aberta (Laparotômica)",
+            "Colecistostomia Percutânea"
+        ],
         anamnesis: "Paciente refere episódios de dor intensa na parte superior direita do abdome (cólica biliar), que pode irradiar para as costas ou ombro direito, frequentemente desencadeada após a ingestão de alimentos gordurosos. Pode haver náuseas, vômitos e empachamento associados.",
         physicalExam: "Ao exame físico: Abdome com dolor à palpação em hipocôndrio direito. Sinal de Murphy positivo. Ruídos hidroaéreos presentes. Sem sinais de peritonite. Icterícia ausente.",
         conduct: "Solicitar: Exames laboratoriais pré-operatórios (Hemograma, Coagulograma, Glicemia, Ureia, Creatinina, Eletrólitos, Bilirrubinas, TGO, TGP, Fosfatase Alcalina, Gama-GT). ECG e RX de tórax. Avaliação do anestesista e, se necessário, do cardiologista. Preenchimento de termo de consentimento. Emissão de AIH."
@@ -55,6 +82,11 @@ export const reasonDataMap = {
     },
     "Hérnia Inguinal Bilateral": {
         procedure: "Hernioplastia Inguinal Bilateral",
+        procedures: [
+            "Hernioplastia Inguinal Bilateral (Lichtenstein com Tela)",
+            "Hernioplastia Inguinal Bilateral Videolaparoscópica (TAPP)",
+            "Hernioplastia Inguinal Bilateral Videolaparoscópica (TEP)"
+        ],
         anamnesis: "Paciente refere dor e/ou desconforto em ambas as regiões inguinais. Presença de abaulamento bilateral que se torna mais evidente com o esforço e pode reduzir ao deitar.",
         physicalExam: "Ao exame físico: Abdome flácido. Presença de abaulamentos redutíveis em ambas as regiões inguinais, que se tornam evidentes à manobra de Valsalva. Orifícios herniários palpáveis bilateralmente. Sem sinais inflamatórios.",
         conduct: "Solicitar: Exames laboratoriais pré-operatórios (Hemograma, Coagulograma, Glicemia, Ureia, Creatinina, Eletrólitos). ECG e RX de tórax. Avaliação do anestesista. Preenchimento de termo de consentimento. Emissão de AIH."
@@ -88,6 +120,92 @@ export const reasonDataMap = {
         anamnesis: "Paciente refere abaulamento e/ou dor nas regiões umbilical e epigástrica, que podem se tornar mais evidentes com esforços ou tosse. Histórico de protuberâncias em ambas as áreas.",
         physicalExam: "Ao exame físico: Abdome flácido e indolor à palpação. Presença de abaulamentos redutíveis em regiões umbilical e epigástrica, com anéis herniários palpáveis. Sem sinais inflamatórios.",
         conduct: "Solicitar: Exames laboratoriais pré-operatórios (Hemograma, Coagulograma, Glicemia, Ureia, Creatinina, Eletrólitos). ECG e RX de tórax. Avaliação do anestesista. Preenchimento de termo de consentimento. Emissão de AIH."
+    },
+    "Cisto Pilonidal": {
+        procedure: "Exérese de Cisto Pilonidal",
+        procedures: [
+            "Exérese de Cisto Pilonidal com Fechamento Primário",
+            "Exérese de Cisto Pilonidal com Marsupialização",
+            "Exérese de Cisto Pilonidal com Retalho de Karydakis",
+            "Drenagem de Abscesso Pilonidal (fase aguda)"
+        ],
+        anamnesis: "Paciente refere dor, edema e/ou secreção purulenta na região sacrococcígea (sulco interglúteo), com episódios de abscesso de repetição. Pode relatar presença de orifício ou trajeto fistuloso na linha média. Histórico de infecções locais recorrentes.",
+        physicalExam: "Ao exame físico: Presença de orifício(s) primário(s) na linha média da região sacrococcígea com ou sem secreção. Pode haver abaulamento, hiperemia e flutuação sugestivos de abscesso. Orifícios secundários palpáveis em posição lateral ao sulco interglúteo. Sem sinais de peritonite ou fístula anorretal.",
+        conduct: "Solicitar: Exames laboratoriais pré-operatórios (Hemograma, Coagulograma, Glicemia). Avaliação do anestesista. Preenchimento de termo de consentimento. Emissão de AIH. Orientar tricotomia local pré-operatória. Na fase aguda: drenagem imediata; cirurgia definitiva eletiva após resolução do processo inflamatório."
+    },
+    "Hemorroidas": {
+        procedure: "Hemorroidectomia",
+        procedures: [
+            "Hemorroidectomia Aberta (Milligan-Morgan)",
+            "Hemorroidectomia Fechada (Ferguson)",
+            "Ligadura Elástica de Hemorroidas",
+            "Hemorroidopexia com Grampeador (PPH)"
+        ],
+        anamnesis: "Paciente refere sangramento retal vivo ao evacuar, prolapso hemorroidário com ou sem redução espontânea, dor e/ou desconforto anal, prurido e sensação de peso na região perianal. Nega alteração do hábito intestinal ou perda de peso significativa.",
+        physicalExam: "Ao exame físico: Inspeção anal evidencia mamilos hemorroidários externos. Ao toque retal: ampola retal livre, sem massas palpáveis. Anuscopia: hemorroidas internas grau [I/II/III/IV] nos quadrantes correspondentes. Sem sinais de fissura ou fístula associada.",
+        conduct: "Solicitar: Exames laboratoriais pré-operatórios (Hemograma, Coagulograma, Glicemia). ECG e RX de tórax (se indicado). Avaliação do anestesista. Colonoscopia (se >45 anos ou sangramento atípico). Preenchimento de termo de consentimento. Emissão de AIH."
+    },
+    "Fissura Anal": {
+        procedure: "Esfincterotomia Lateral Interna",
+        procedures: [
+            "Esfincterotomia Lateral Interna",
+            "Fissurectomia com Avanço de Retalho",
+            "Injeção de Toxina Botulínica (tratamento conservador)"
+        ],
+        anamnesis: "Paciente refere dor intensa durante e após a evacuação, de caráter agudo e queimante, associada a sangramento retal em pequena quantidade (sangue vivo no papel higiênico). Pode referir espasmo esfincteriano e constipação por receio da dor.",
+        physicalExam: "Ao exame físico: Inspeção anal com afastamento delicado das nádegas evidencia fissura linear na mucosa anal, predominantemente na comissura posterior (6 horas). Pode haver pólipo sentinela associado. Toque retal com hipertonia esfincteriana. Anuscopia limitada pela dor.",
+        conduct: "Solicitar: Exames laboratoriais pré-operatórios (Hemograma, Coagulograma, Glicemia). Avaliação do anestesista. Preenchimento de termo de consentimento. Orientar medidas conservadoras iniciais: dieta rica em fibras, hidratação, banhos de assento, laxantes osmóticos e pomadas tópicas (nitroglicerina ou diltiazem). Emissão de AIH."
+    },
+    "Tumor de Cólon": {
+        procedure: "Hemicolectomia",
+        procedures: [
+            "Hemicolectomia Direita (Laparoscópica)",
+            "Hemicolectomia Esquerda (Laparoscópica)",
+            "Sigmoidectomia (Laparoscópica)",
+            "Colectomia Total",
+            "Hemicolectomia Direita (Aberta)",
+            "Hemicolectomia Esquerda (Aberta)"
+        ],
+        anamnesis: "Paciente refere alteração do hábito intestinal (constipação ou diarreia), sangramento retal ou melena, dor abdominal em cólica, perda de peso não intencional e astenia progressiva. Nega outras comorbidades gastrointestinais. Histórico familiar de câncer colorretal investigado.",
+        physicalExam: "Ao exame físico: Abdome com leve desconforto à palpação profunda no quadrante correspondente à topografia do tumor. Pode haver massa palpável. Toque retal sem alterações. Ruídos hidroaéreos presentes. Sem sinais de peritonite ou abdome agudo obstrutivo.",
+        conduct: "Solicitar: Colonoscopia com biópsia (confirmar diagnóstico histopatológico). TC de Abdome e Pelve com contraste (estadiamento). RX ou TC de tórax. CEA. Exames laboratoriais pré-operatórios completos (Hemograma, Coagulograma, Função hepática e renal, Eletrólitos). Avaliação do anestesista e oncologista. Preenchimento de termo de consentimento. Emissão de AIH."
+    },
+    "Neoplasia de Cólon": {
+        procedure: "Hemicolectomia",
+        procedures: [
+            "Hemicolectomia Direita (Laparoscópica)",
+            "Hemicolectomia Esquerda (Laparoscópica)",
+            "Sigmoidectomia (Laparoscópica)",
+            "Colectomia Total",
+            "Hemicolectomia Direita (Aberta)",
+            "Hemicolectomia Esquerda (Aberta)"
+        ],
+        anamnesis: "Paciente refere alteração do hábito intestinal (constipação ou diarreia), sangramento retal ou melena, dor abdominal em cólica, perda de peso não intencional e astenia progressiva. Nega outras comorbidades gastrointestinais. Histórico familiar de câncer colorretal investigado.",
+        physicalExam: "Ao exame físico: Abdome com leve desconforto à palpação profunda no quadrante correspondente à topografia do tumor. Pode haver massa palpável. Toque retal sem alterações. Ruídos hidroaéreos presentes. Sem sinais de peritonite ou abdome agudo obstrutivo.",
+        conduct: "Solicitar: Colonoscopia com biópsia (confirmar diagnóstico histopatológico). TC de Abdome e Pelve com contraste (estadiamento). RX ou TC de tórax. CEA. Exames laboratoriais pré-operatórios completos (Hemograma, Coagulograma, Função hepática e renal, Eletrólitos). Avaliação do anestesista e oncologista. Preenchimento de termo de consentimento. Emissão de AIH."
+    },
+    "Neoplasia de Reto": {
+        procedure: "Ressecção Anterior do Reto",
+        procedures: [
+            "Ressecção Anterior do Reto (Laparoscópica)",
+            "Amputação Abdominoperineal (Miles)",
+            "Proctocolectomia Total com Bolsa Ileal (IPAA)",
+            "Ressecção Anterior do Reto (Aberta)"
+        ],
+        anamnesis: "Paciente refere sangramento retal, tenesmo, alteração do calibre das fezes, sensação de evacuação incompleta e dor anorretal. Pode relatar perda de peso e astenia. Nega outros sintomas gastrointestinais relevantes.",
+        physicalExam: "Ao exame físico: Ao toque retal, pode-se palpar massa tumoral de consistência endurecida a distância variável da margem anal, com superfície irregular. Ampola retal parcialmente ocupada. Sem sinais de extensão perianal. Demais sistemas sem alterações.",
+        conduct: "Solicitar: Colonoscopia com biópsia. TC de Abdome e Pelve com contraste. RNM de Pelve (estadiamento loco-regional). RX ou TC de tórax. CEA e CA 19-9. Exames laboratoriais pré-operatórios completos. Avaliação do anestesista, oncologista e coloproctologista. Discutir neoadjuvância (radio-quimioterapia). Preenchimento de termo de consentimento. Emissão de AIH."
+    },
+    "Apendicite Aguda": {
+        procedure: "Apendicectomia Videolaparoscópica",
+        procedures: [
+            "Apendicectomia Videolaparoscópica",
+            "Apendicectomia Aberta (McBurney)",
+            "Drenagem de Abscesso Periapendicular + Apendicectomia Diferida"
+        ],
+        anamnesis: "Paciente refere dor abdominal iniciada em região periumbilical com migração para fossa ilíaca direita, associada a náuseas, vômitos, anorexia e febre baixa. Nega diarreia ou alteração do hábito intestinal.",
+        physicalExam: "Ao exame físico: Abdome com dor à palpação em fossa ilíaca direita, sinal de Blumberg positivo (descompressão dolorosa). Sinal de Rovsing positivo. Sinal do Psoas pode estar presente. Defesa muscular localizada. Temperatura axilar elevada. Ruídos hidroaéreos diminuídos.",
+        conduct: "Solicitar: Hemograma completo (leucocitose com desvio à esquerda). PCR. Ureia, Creatinina, Eletrólitos. Urina I (diagnóstico diferencial). US de abdome. TC de abdome com contraste (se US inconclusivo). Avaliação do anestesista. Internação imediata. Preenchimento de termo de consentimento. Emissão de AIH."
     },
     "Outro...": {
         procedure: "",

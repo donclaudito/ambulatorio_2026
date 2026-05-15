@@ -7,6 +7,10 @@ import Modal from './components/Modal';
 import { stripMarkdown } from './utils/textUtils';
 
 const initialFormState = {
+  patientAge: '',
+  patientSex: '',
+  patientHeight: '',
+  patientWeight: '',
   primaryReason: '',
   customReason: '',
   associatedReason: '',
@@ -38,6 +42,19 @@ function App() {
     
     const reason = formData.primaryReason === 'Outro...' ? formData.customReason : formData.primaryReason;
     report += `Motivo do Encaminhamento: ${reason}${formData.associatedReason ? ` e ${formData.associatedReason}` : ''}\n`;
+    
+    if (formData.patientAge || formData.patientSex || formData.patientWeight || formData.patientHeight) {
+      const weight = parseFloat(formData.patientWeight);
+      const height = parseFloat(formData.patientHeight) / 100;
+      const imc = (weight > 0 && height > 0) ? (weight / (height * height)).toFixed(1) : null;
+      
+      report += `Identificação: ${formData.patientSex || 'Sexo não inf.'}, ${formData.patientAge || '??'} anos`;
+      if (formData.patientWeight) report += `, Peso: ${formData.patientWeight}kg`;
+      if (formData.patientHeight) report += `, Altura: ${formData.patientHeight}cm`;
+      if (imc) report += `, IMC: ${imc}`;
+      report += `\n`;
+    }
+
     report += `Procedimento Proposto: ${formData.proposedProcedure}\n\n`;
     
     report += `Anamnese/Queixa Principal:\n${formData.anamnesis}\n\n`;
