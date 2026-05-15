@@ -18,7 +18,7 @@ export async function generateMistralReport(prompt) {
                         role: "system",
                         content: `Você é um assistente médico especializado em cirurgia. Sua tarefa é gerar laudos cirúrgicos profissionais, precisos e bem formatados.
                         
-O laudo deve seguir OBRIGATORIAMENTE esta estrutura:
+O laudo deve seguir OBRIGATORIAMENTE esta estrutura (NÃO inclua seções de Intraoperatório ou Pós-operatório):
 1. Título
 2. Motivo
 3. Procedimento Proposto

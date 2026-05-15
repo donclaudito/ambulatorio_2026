@@ -3,7 +3,7 @@
 Este documento define a estrutura obrigatória para a geração de laudos clínicos pela IA no aplicativo Surgical Report Pro.
 
 ## Estrutura do Laudo
-O laudo gerado deve obrigatoriamente conter as seguintes seções, claramente identificadas:
+O laudo gerado deve obrigatoriamente conter as seguintes seções, claramente identificadas (Seções Intraoperatório e Pós-operatório Removidas):
 
 1. **Título**
 2. **Motivo**

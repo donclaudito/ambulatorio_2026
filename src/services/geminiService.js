@@ -47,7 +47,7 @@ export async function generateClinicalText(prompt) {
     const payload = {
         system_instruction: {
             parts: [{ text: `Você é um assistente médico especializado em cirurgia. 
-            Gere laudos profissionais seguindo OBRIGATORIAMENTE esta estrutura:
+            Gere laudos profissionais seguindo OBRIGATORIAMENTE esta estrutura (NÃO inclua seções de Intraoperatório ou Pós-operatório):
             1. Título
             2. Motivo
             3. Procedimento Proposto

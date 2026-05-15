@@ -4,6 +4,7 @@ import ReportOutput from './components/ReportOutput';
 import MistralReportGenerator from './components/MistralReportGenerator';
 import ApiKeySettings from './components/ApiKeySettings';
 import Modal from './components/Modal';
+import { stripMarkdown } from './utils/textUtils';
 
 const initialFormState = {
   primaryReason: '',
@@ -71,8 +72,9 @@ function App() {
   };
 
   const handleCopy = (text, type) => {
-    navigator.clipboard.writeText(text);
-    setCopyStatus(`Copiado para área de transferência!`);
+    const plainText = stripMarkdown(text);
+    navigator.clipboard.writeText(plainText);
+    setCopyStatus(`Copiado como texto puro!`);
     setTimeout(() => setCopyStatus(''), 2000);
   };
 
