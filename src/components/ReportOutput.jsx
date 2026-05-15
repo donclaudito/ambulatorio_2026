@@ -49,7 +49,7 @@ const ReportOutput = ({ report, evaluationRequests, onCopy }) => {
   const CopySection = ({ title, content, type }) => {
     if (!content) return null;
     return (
-      <div className="glass p-5 rounded-2xl shadow-sm border border-white/50 space-y-3 animate-in fade-in slide-in-from-right-4 no-print">
+      <div className="glass p-5 rounded-2xl shadow-sm border border-white/50 space-y-3 animate-slide-in-right no-print">
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-bold text-gray-700">{title}</h3>
           <button 
@@ -74,7 +74,7 @@ const ReportOutput = ({ report, evaluationRequests, onCopy }) => {
       </div>
 
       {/* Editable Final Report Section */}
-      <div className="glass p-6 rounded-2xl shadow-lg border border-blue-200/50 space-y-4 animate-in fade-in zoom-in print:shadow-none print:border-none print:p-0 print:m-0">
+      <div className="glass p-6 rounded-2xl shadow-lg border border-blue-200/50 space-y-4 animate-zoom-in print:shadow-none print:border-none print:p-0 print:m-0">
         <div className="flex justify-between items-center no-print">
           <h3 className="text-xl font-bold text-blue-800">Laudo Final</h3>
           <div className="flex gap-2">

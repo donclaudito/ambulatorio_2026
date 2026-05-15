@@ -113,7 +113,7 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
           <input 
             type="text" 
             placeholder="Especifique o motivo..." 
-            className="input-field animate-in slide-in-from-top-2"
+            className="input-field animate-slide-in-top"
             value={formData.customReason}
             onChange={(e) => setFormData({...formData, customReason: e.target.value})}
           />
@@ -199,7 +199,7 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
         </div>
 
         {formData.comorbidities.includes("Alergia a Medicamentos") && (
-          <div className="animate-in fade-in zoom-in duration-200">
+          <div className="animate-zoom-in">
             <label className="block text-sm font-semibold text-gray-700">Qual(is) alergia(s)?</label>
             <input 
               className="input-field"
