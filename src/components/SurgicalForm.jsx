@@ -10,35 +10,50 @@ import {
 import { generateClinicalText } from '../services/geminiService';
 import Modal from './Modal';
 
+const SectionHeader = ({ icon, title }) => (
+  <div className="flex items-center gap-2 mb-4 border-b border-slate-100 pb-2">
+    <span className="text-xl">{icon}</span>
+    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">{title}</h3>
+  </div>
+);
+
 const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
-  const [activeModal, setActiveModal] = useState(null); // 'medication', 'diagnosis', 'dermatology', 'confirmation'
+  const [activeModal, setActiveModal] = useState(null);
   const [modalData, setModalData] = useState({ title: '', items: [], targetField: '' });
   const [isLoading, setIsLoading] = useState({ anamnesis: false, physicalExam: false });
 
-  // Handle auto-filling when reasons change
   useEffect(() => {
     const primary = formData.primaryReason;
     const associated = formData.associatedReason;
+    if (!primary) return;
 
     let data = reasonDataMap[primary] || reasonDataMap["Outro..."];
     
-    // Special case for combined hernias
     if ((primary === "Hérnia Umbilical" && associated === "Hérnia Epigástrica") ||
         (primary === "Hérnia Epigástrica" && associated === "Hérnia Umbilical")) {
       data = reasonDataMap["Hérnia Umbilical e Epigástrica Associadas"];
     }
 
-    if (primary === "Cirurgia Ambulatorial (Dermatológica)") {
+    if (primary === "Cirurgia Ambulatorial (Dermatológica)" && activeModal !== 'dermatology') {
       setActiveModal('dermatology');
     }
 
-    setFormData(prev => ({
-      ...prev,
-      proposedProcedure: data.procedure || prev.proposedProcedure,
-      anamnesis: data.anamnesis,
-      physicalExam: data.physicalExam,
-      conduct: data.conduct
-    }));
+    // Only update if something actually changed to avoid "Cannot update a component..." error
+    const needsUpdate = 
+      formData.proposedProcedure !== (data.procedure || formData.proposedProcedure) ||
+      formData.anamnesis !== data.anamnesis ||
+      formData.physicalExam !== data.physicalExam ||
+      formData.conduct !== data.conduct;
+
+    if (needsUpdate) {
+      setFormData(prev => ({
+        ...prev,
+        proposedProcedure: data.procedure || prev.proposedProcedure,
+        anamnesis: data.anamnesis,
+        physicalExam: data.physicalExam,
+        conduct: data.conduct
+      }));
+    }
   }, [formData.primaryReason, formData.associatedReason]);
 
   const handleAIField = async (field) => {
@@ -68,7 +83,6 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
         ? prev.comorbidities.filter(c => c !== value)
         : [...prev.comorbidities.filter(c => c !== "Nenhuma Comorbidade Conhecida"), value];
       
-      // Open medication modal if adding a comorbidity with meds
       if (!prev.comorbidities.includes(value) && comorbidityMedicationsMap[value]) {
         setModalData({
           title: `Medicamentos para ${value}`,
@@ -92,186 +106,201 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
   };
 
   return (
-    <div className="w-full lg:w-1/2 space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">Dados da Consulta</h2>
-      
-      <div className="space-y-4">
-        {/* Referral Reason */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700">Motivo do Encaminhamento Principal</label>
-          <select 
-            className="input-field"
-            value={formData.primaryReason}
-            onChange={(e) => setFormData({...formData, primaryReason: e.target.value})}
-          >
-            <option value="">-- Selecione --</option>
-            {Object.keys(reasonDataMap).map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
-        </div>
-
-        {formData.primaryReason === "Outro..." && (
-          <input 
-            type="text" 
-            placeholder="Especifique o motivo..." 
-            className="input-field animate-slide-in-top"
-            value={formData.customReason}
-            onChange={(e) => setFormData({...formData, customReason: e.target.value})}
-          />
-        )}
-
-        {/* Associated Reason */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700">Motivo Associado (Opcional)</label>
-          <select 
-            className="input-field"
-            value={formData.associatedReason}
-            onChange={(e) => setFormData({...formData, associatedReason: e.target.value})}
-          >
-            <option value="">-- Selecione --</option>
-            {Object.keys(reasonDataMap).map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
-        </div>
-
-        {/* Proposed Procedure */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700">Procedimento Proposto</label>
-          <input 
-            className="input-field"
-            value={formData.proposedProcedure}
-            onChange={(e) => setFormData({...formData, proposedProcedure: e.target.value})}
-          />
-        </div>
-
-        {/* Anamnesis */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700">Anamnese / Queixa Principal</label>
-          <textarea 
-            rows="3" 
-            className="input-field"
-            value={formData.anamnesis}
-            onChange={(e) => setFormData({...formData, anamnesis: e.target.value})}
-          />
-          <button 
-            type="button"
-            onClick={() => handleAIField('anamnesis')}
-            disabled={isLoading.anamnesis}
-            className="mt-2 text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1"
-          >
-            {isLoading.anamnesis ? "Gerando..." : "✨ Gerar com IA"}
-          </button>
-        </div>
-
-        {/* Physical Exam */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700">Exame Físico</label>
-          <textarea 
-            rows="3" 
-            className="input-field"
-            value={formData.physicalExam}
-            onChange={(e) => setFormData({...formData, physicalExam: e.target.value})}
-          />
-          <button 
-            type="button"
-            onClick={() => handleAIField('physicalExam')}
-            disabled={isLoading.physicalExam}
-            className="mt-2 text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1"
-          >
-            {isLoading.physicalExam ? "Gerando..." : "✨ Gerar com IA"}
-          </button>
-        </div>
-
-        {/* Comorbidities */}
-        <div className="space-y-2">
-          <label className="block text-sm font-semibold text-gray-700">Comorbidades</label>
-          <div className="grid grid-cols-2 gap-2">
-            {[...Object.keys(comorbidityMedicationsMap), "Alergia a Medicamentos", "Uso de Drogas Ilícitas", "Nenhuma Comorbidade Conhecida"].map(c => (
-              <label key={c} className="flex items-center space-x-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded transition-colors">
-                <input 
-                  type="checkbox" 
-                  checked={formData.comorbidities.includes(c)}
-                  onChange={() => toggleComorbidity(c)}
-                  className="rounded text-blue-600"
-                />
-                <span>{c}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {formData.comorbidities.includes("Alergia a Medicamentos") && (
-          <div className="animate-zoom-in">
-            <label className="block text-sm font-semibold text-gray-700">Qual(is) alergia(s)?</label>
-            <input 
+    <div className="space-y-6">
+      {/* 1. Motivo e Procedimento */}
+      <section className="card-section animate-slide-in-top">
+        <SectionHeader icon="📋" title="Identificação da Demanda" />
+        <div className="grid grid-cols-1 gap-4">
+          <div>
+            <label className="label-text">Motivo Principal</label>
+            <select 
               className="input-field"
-              value={formData.allergyDetails}
-              onChange={(e) => setFormData({...formData, allergyDetails: e.target.value})}
+              value={formData.primaryReason}
+              onChange={(e) => setFormData({...formData, primaryReason: e.target.value})}
+            >
+              <option value="">-- Selecione o motivo --</option>
+              {Object.keys(reasonDataMap).map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+
+          {formData.primaryReason === "Outro..." && (
+            <input 
+              type="text" 
+              placeholder="Especifique o motivo..." 
+              className="input-field animate-slide-in-top"
+              value={formData.customReason}
+              onChange={(e) => setFormData({...formData, customReason: e.target.value})}
+            />
+          )}
+
+          <div>
+            <label className="label-text">Motivo Associado (Opcional)</label>
+            <select 
+              className="input-field"
+              value={formData.associatedReason}
+              onChange={(e) => setFormData({...formData, associatedReason: e.target.value})}
+            >
+              <option value="">-- Nenhum --</option>
+              {Object.keys(reasonDataMap).map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="label-text">Procedimento Proposto</label>
+            <input 
+              className="input-field font-semibold text-blue-700"
+              value={formData.proposedProcedure}
+              onChange={(e) => setFormData({...formData, proposedProcedure: e.target.value})}
+              placeholder="Ex: Hernioplastia Inguinal..."
             />
           </div>
-        )}
-
-        {/* Medications */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700">Medicamentos em Uso</label>
-          <input 
-            className="input-field"
-            list="med-list"
-            value={formData.medicationsInUse}
-            onChange={(e) => setFormData({...formData, medicationsInUse: e.target.value})}
-            placeholder="Separe por vírgulas..."
-          />
-          <datalist id="med-list">
-            {commonMedications.map(m => <option key={m} value={m} />)}
-          </datalist>
         </div>
+      </section>
 
-        {/* Imaging Exams */}
-        <div className="space-y-2">
-          <label className="block text-sm font-semibold text-gray-700">Exames de Imagem Anexados</label>
-          <div className="grid grid-cols-2 gap-2">
-            {predefinedImageExams.map(e => (
-              <label key={e} className="flex items-center space-x-2 text-sm">
-                <input 
-                  type="checkbox" 
-                  checked={formData.imageExams.includes(e)}
-                  onChange={(evt) => {
-                    const newExams = evt.target.checked 
-                      ? [...formData.imageExams, e]
-                      : formData.imageExams.filter(item => item !== e);
-                    setFormData({...formData, imageExams: newExams});
-                    
-                    if (evt.target.checked && imageExamDiagnosesMap[e]) {
-                      setModalData({
-                        title: `Diagnósticos para ${e}`,
-                        items: imageExamDiagnosesMap[e],
-                        targetField: 'relatedDiagnoses'
-                      });
-                      setActiveModal('diagnosis');
-                    }
-                  }}
-                  className="rounded text-blue-600"
-                />
-                <span>{e}</span>
-              </label>
-            ))}
+      {/* 2. História Clínica */}
+      <section className="card-section animate-slide-in-top" style={{animationDelay: '0.1s'}}>
+        <SectionHeader icon="📝" title="História e Exame Físico" />
+        <div className="space-y-4">
+          <div>
+            <div className="flex justify-between items-end mb-1">
+              <label className="label-text">Anamnese / Queixa Principal</label>
+              <button 
+                type="button"
+                onClick={() => handleAIField('anamnesis')}
+                disabled={isLoading.anamnesis}
+                className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase tracking-tighter"
+              >
+                {isLoading.anamnesis ? "Gerando..." : "✨ IA Autofill"}
+              </button>
+            </div>
+            <textarea 
+              rows="3" 
+              className="input-field"
+              value={formData.anamnesis}
+              onChange={(e) => setFormData({...formData, anamnesis: e.target.value})}
+            />
+          </div>
+
+          <div>
+            <div className="flex justify-between items-end mb-1">
+              <label className="label-text">Exame Físico</label>
+              <button 
+                type="button"
+                onClick={() => handleAIField('physicalExam')}
+                disabled={isLoading.physicalExam}
+                className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase tracking-tighter"
+              >
+                {isLoading.physicalExam ? "Gerando..." : "✨ IA Autofill"}
+              </button>
+            </div>
+            <textarea 
+              rows="3" 
+              className="input-field"
+              value={formData.physicalExam}
+              onChange={(e) => setFormData({...formData, physicalExam: e.target.value})}
+            />
           </div>
         </div>
+      </section>
 
-        {/* Conduct */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700">Conduta / Recomendações</label>
-          <textarea 
-            rows="3" 
-            className="input-field"
-            value={formData.conduct}
-            onChange={(e) => setFormData({...formData, conduct: e.target.value})}
-          />
-        </div>
+      {/* 3. Antecedentes e Exames */}
+      <section className="card-section animate-slide-in-top" style={{animationDelay: '0.2s'}}>
+        <SectionHeader icon="🏥" title="Antecedentes e Exames" />
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <label className="label-text">Comorbidades e Riscos</label>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              {[...Object.keys(comorbidityMedicationsMap), "Alergia a Medicamentos", "Nenhuma Comorbidade Conhecida"].map(c => (
+                <label key={c} className="flex items-center space-x-3 text-xs font-medium cursor-pointer p-2 rounded-lg hover:bg-slate-50 transition-colors">
+                  <input 
+                    type="checkbox" 
+                    checked={formData.comorbidities.includes(c)}
+                    onChange={() => toggleComorbidity(c)}
+                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className={formData.comorbidities.includes(c) ? "text-blue-700 font-bold" : "text-slate-600"}>{c}</span>
+                </label>
+              ))}
+            </div>
+          </div>
 
-        {/* Main Actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-          <button onClick={onGenerate} className="btn-primary">Gerar Laudo</button>
-          <button onClick={() => setActiveModal('confirmation')} className="btn-danger">Limpar Tudo</button>
+          {formData.comorbidities.includes("Alergia a Medicamentos") && (
+            <div className="animate-zoom-in">
+              <label className="label-text">Detalhes da Alergia</label>
+              <input 
+                className="input-field border-red-200 focus:ring-red-500/20"
+                value={formData.allergyDetails}
+                onChange={(e) => setFormData({...formData, allergyDetails: e.target.value})}
+                placeholder="Liste os medicamentos..."
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="label-text">Medicamentos em Uso</label>
+            <input 
+              className="input-field"
+              list="med-list"
+              value={formData.medicationsInUse}
+              onChange={(e) => setFormData({...formData, medicationsInUse: e.target.value})}
+              placeholder="Separe por vírgulas..."
+            />
+            <datalist id="med-list">
+              {commonMedications.map(m => <option key={m} value={m} />)}
+            </datalist>
+          </div>
+
+          <div className="space-y-3">
+            <label className="label-text">Exames de Imagem Selecionados</label>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              {predefinedImageExams.map(e => (
+                <label key={e} className="flex items-center space-x-3 text-xs font-medium cursor-pointer p-2 rounded-lg hover:bg-slate-50 transition-colors">
+                  <input 
+                    type="checkbox" 
+                    checked={formData.imageExams.includes(e)}
+                    onChange={(evt) => {
+                      const newExams = evt.target.checked 
+                        ? [...formData.imageExams, e]
+                        : formData.imageExams.filter(item => item !== e);
+                      setFormData({...formData, imageExams: newExams});
+                      
+                      if (evt.target.checked && imageExamDiagnosesMap[e]) {
+                        setModalData({
+                          title: `Diagnósticos para ${e}`,
+                          items: imageExamDiagnosesMap[e],
+                          targetField: 'relatedDiagnoses'
+                        });
+                        setActiveModal('diagnosis');
+                      }
+                    }}
+                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className={formData.imageExams.includes(e) ? "text-blue-700 font-bold" : "text-slate-600"}>{e}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="label-text">Conduta / Recomendações</label>
+            <textarea 
+              rows="3" 
+              className="input-field"
+              value={formData.conduct}
+              onChange={(e) => setFormData({...formData, conduct: e.target.value})}
+            />
+          </div>
         </div>
+      </section>
+
+      {/* Main Actions */}
+      <div className="flex items-center gap-4 pt-4 sticky bottom-6 z-50">
+        <button onClick={onGenerate} className="btn-primary flex-1 shadow-lg shadow-blue-200">
+          Gerar Laudo Clínico
+        </button>
+        <button onClick={() => setActiveModal('confirmation')} className="btn-danger flex-1">
+          Limpar Tudo
+        </button>
       </div>
 
       {/* Modals */}
@@ -281,21 +310,21 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
         onClose={() => setActiveModal(null)}
         footer={
           <button 
-            className="btn-primary"
+            className="btn-primary w-full"
             onClick={() => {
               const checked = Array.from(document.querySelectorAll('.modal-check:checked')).map(el => el.value);
               handleModalSelection(checked);
             }}
           >
-            Confirmar
+            Confirmar Seleção
           </button>
         }
       >
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           {modalData.items.map(item => (
-            <label key={item} className="flex items-center space-x-2 p-2 hover:bg-white/50 rounded transition-colors cursor-pointer">
-              <input type="checkbox" value={item} className="modal-check rounded text-blue-600" />
-              <span className="text-sm">{item}</span>
+            <label key={item} className="flex items-center space-x-3 p-3 bg-slate-50 hover:bg-blue-50 rounded-xl transition-all cursor-pointer border border-transparent hover:border-blue-100">
+              <input type="checkbox" value={item} className="modal-check w-5 h-5 rounded border-slate-300 text-blue-600" />
+              <span className="text-sm font-medium text-slate-700">{item}</span>
             </label>
           ))}
         </div>
@@ -306,11 +335,11 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
         title="Diagnósticos Dermatológicos"
         onClose={() => setActiveModal(null)}
       >
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           {Object.keys(dermatologicalDiagnosesMap).map(diag => (
             <button
               key={diag}
-              className="text-left p-3 glass hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded-xl transition-all text-sm font-medium"
+              className="text-left p-4 glass hover:bg-blue-600 hover:text-white border border-slate-100 rounded-2xl transition-all text-sm font-bold shadow-sm"
               onClick={() => {
                 setFormData(prev => ({
                   ...prev,
@@ -331,13 +360,13 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
         title="Confirmar Limpeza"
         onClose={() => setActiveModal(null)}
         footer={
-          <>
-            <button className="px-4 py-2 text-gray-600 font-bold" onClick={() => setActiveModal(null)}>Cancelar</button>
-            <button className="btn-danger" onClick={() => { onClear(); setActiveModal(null); }}>Sim, Limpar</button>
-          </>
+          <div className="flex gap-3 w-full">
+            <button className="flex-1 py-3 text-slate-500 font-bold text-sm" onClick={() => setActiveModal(null)}>Cancelar</button>
+            <button className="btn-danger flex-1 bg-red-600 text-white hover:bg-red-700" onClick={() => { onClear(); setActiveModal(null); }}>Sim, Limpar Tudo</button>
+          </div>
         }
       >
-        <p>Tem certeza que deseja apagar todos os dados do formulário? Esta ação não pode ser desfeita.</p>
+        <p className="text-slate-600 leading-relaxed text-center py-4">Tem certeza que deseja apagar todos os dados do formulário? <br/><span className="font-bold text-red-600">Esta ação não pode ser desfeita.</span></p>
       </Modal>
     </div>
   );

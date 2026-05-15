@@ -1,14 +1,22 @@
-const API_KEY = "AIzaSyBsWFw-01rIa7MtZ0b2lQlR4CZBWX9lPA8"; // Note: Use .env for production
+import { configService } from './configService';
+
 const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent";
 
 async function fetchWithRetry(payload, maxRetries = 5) {
-    const finalApiUrl = `${API_URL}?key=${API_KEY}`;
+    const API_KEY = configService.getGeminiKey();
     
+    // Google Gemini API v1beta recomenda o uso do header x-goog-api-key
+    // A chave na URL ainda funciona, mas o header é mais robusto
+    const headers = {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': API_KEY
+    };
+
     for (let i = 0; i < maxRetries; i++) {
         try {
-            const response = await fetch(finalApiUrl, {
+            const response = await fetch(API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: headers,
                 body: JSON.stringify(payload)
             });
 
@@ -21,7 +29,7 @@ async function fetchWithRetry(payload, maxRetries = 5) {
                 continue;
             } else {
                 const errorBody = await response.json();
-                throw new Error(`Erro na API (Status ${response.status}): ${JSON.stringify(errorBody)}`);
+                throw new Error(`Erro na API Gemini (Status ${response.status}): ${JSON.stringify(errorBody)}`);
             }
         } catch (error) {
             if (i === maxRetries - 1) throw error;
@@ -32,6 +40,10 @@ async function fetchWithRetry(payload, maxRetries = 5) {
 }
 
 export async function generateClinicalText(prompt) {
+    if (!configService.getGeminiKey()) {
+        throw new Error("Chave de API do Gemini não configurada.");
+    }
+
     const payload = {
         contents: [{ role: "user", parts: [{ text: prompt }] }]
     };
