@@ -20,6 +20,7 @@ const initialFormState = {
   comorbidities: [],
   allergyDetails: '',
   medicationsInUse: '',
+  asaClassification: '',
   conduct: '',
   imageExams: [],
   relatedDiagnoses: ''
@@ -65,6 +66,11 @@ function App() {
     report += `\n\n`;
     
     report += `Medicamentos em Uso: ${formData.medicationsInUse || 'Nenhum informado'}\n\n`;
+
+    if (formData.asaClassification) {
+      report += `Classificação ASA (Risco Cirúrgico):\n${formData.asaClassification}\n\n`;
+    }
+
     
     if (formData.imageExams.length > 0) {
       report += `Exames de Imagem: ${formData.imageExams.join(', ')}\n`;

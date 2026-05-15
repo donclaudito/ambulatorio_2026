@@ -23,7 +23,7 @@ const SectionHeader = ({ icon, title }) => (
 const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
   const [activeModal, setActiveModal] = useState(null);
   const [modalData, setModalData] = useState({ title: '', items: [], targetField: '' });
-  const [isLoading, setIsLoading] = useState({ anamnesis: false, physicalExam: false, procedure: false });
+  const [isLoading, setIsLoading] = useState({ anamnesis: false, physicalExam: false, procedure: false, asa: false });
   // reasonDataMap tem prioridade: entradas oficiais nunca são sobrescritas pelo localStorage
   const [allReasons, setAllReasons] = useState(() => {
     const custom = getCustomReasons();
@@ -121,7 +121,7 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
       return;
     }
     
-    const loadingKey = field === 'procedure' ? 'procedure' : field;
+    const loadingKey = field === 'procedure' ? 'procedure' : field === 'asaClassification' ? 'asa' : field;
     setIsLoading(prev => ({ ...prev, [loadingKey]: true }));
 
     try {
@@ -142,6 +142,9 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
         prompt = `Aja como um cirurgião sênior. Seja ESTRITAMENTE OBJETIVO. Gere *apenas o texto* de uma anamnese técnica e queixa principal baseada APENAS nestes dados: ${demographics}${biometrics}Quadro clínico: ${reasonContext}${associatedText}. Procedimento: ${procedureContext}. Use terminologia cirúrgica precisa. NÃO invente sintomas. NÃO gere conclusões. Incorpore idade/sexo e dados biométricos naturalmente se relevante.`;
       } else if (field === 'physicalExam') {
         prompt = `Aja como um cirurgião sênior. Seja ESTRITAMENTE OBJETIVO. Gere *apenas o texto* de um exame físico técnico resumido baseado APENAS nestes dados: ${demographics}${biometrics}Quadro de ${reasonContext}${associatedText} (procedimento: ${procedureContext}). Use terminologia cirúrgica precisa. Foco em sinais vitais e achados locais. NÃO invente achados.`;
+      } else if (field === 'asaClassification') {
+        const imcText = (formData.patientWeight && formData.patientHeight) ? ` IMC Calculado: ${(parseFloat(formData.patientWeight) / Math.pow(parseFloat(formData.patientHeight) / 100, 2)).toFixed(1)}.` : '';
+        prompt = `Aja como um anestesiologista avaliador. Avalie os seguintes dados do paciente: ${demographics}${biometrics}${imcText} Comorbidades relatadas: ${formData.comorbidities.join(', ') || 'Nenhuma'}. Medicamentos em uso: ${formData.medicationsInUse || 'Nenhum'}. Sugira a classificação de Risco Cirúrgico ASA (I a VI). Retorne a sugestão e explique brevemente os critérios utilizados para essa classificação com base nestes dados. Seja direto e não invente dados adicionais.`;
       }
       
       const text = await generateClinicalTextUnified(prompt);
@@ -226,7 +229,7 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
               type="number" 
               className="input-field"
               placeholder="Anos"
-              value={formData.patientAge}
+              value={formData.patientAge || ''}
               onChange={(e) => setFormData({...formData, patientAge: e.target.value})}
             />
           </div>
@@ -234,7 +237,7 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
             <label className="label-text">Sexo</label>
             <select 
               className="input-field"
-              value={formData.patientSex}
+              value={formData.patientSex || ''}
               onChange={(e) => setFormData({...formData, patientSex: e.target.value})}
             >
               <option value="">--</option>
@@ -248,7 +251,7 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
               type="number" 
               className="input-field"
               placeholder="Ex: 80"
-              value={formData.patientWeight}
+              value={formData.patientWeight || ''}
               onChange={(e) => setFormData({...formData, patientWeight: e.target.value})}
             />
           </div>
@@ -258,7 +261,7 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
               type="number" 
               className="input-field"
               placeholder="Ex: 175"
-              value={formData.patientHeight}
+              value={formData.patientHeight || ''}
               onChange={(e) => setFormData({...formData, patientHeight: e.target.value})}
             />
           </div>
@@ -380,7 +383,7 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
             <textarea 
               rows="3" 
               className="input-field"
-              value={formData.anamnesis}
+              value={formData.anamnesis || ''}
               onChange={(e) => setFormData({...formData, anamnesis: e.target.value})}
             />
           </div>
@@ -400,7 +403,7 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
             <textarea 
               rows="3" 
               className="input-field"
-              value={formData.physicalExam}
+              value={formData.physicalExam || ''}
               onChange={(e) => setFormData({...formData, physicalExam: e.target.value})}
             />
           </div>
@@ -433,7 +436,7 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
               <label className="label-text">Detalhes da Alergia</label>
               <input 
                 className="input-field border-red-200 focus:ring-red-500/20"
-                value={formData.allergyDetails}
+                value={formData.allergyDetails || ''}
                 onChange={(e) => setFormData({...formData, allergyDetails: e.target.value})}
                 placeholder="Liste os medicamentos..."
               />
@@ -445,13 +448,34 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
             <input 
               className="input-field"
               list="med-list"
-              value={formData.medicationsInUse}
+              value={formData.medicationsInUse || ''}
               onChange={(e) => setFormData({...formData, medicationsInUse: e.target.value})}
               placeholder="Separe por vírgulas..."
             />
             <datalist id="med-list">
               {commonMedications.map(m => <option key={m} value={m} />)}
             </datalist>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-end mb-1">
+              <label className="label-text">Classificação ASA (Risco Cirúrgico)</label>
+              <button 
+                type="button"
+                onClick={() => handleAIField('asaClassification')}
+                disabled={isLoading.asa}
+                className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase tracking-tighter"
+              >
+                {isLoading.asa ? "Analisando..." : "✨ Avaliar Risco / ASA"}
+              </button>
+            </div>
+            <textarea 
+              rows="3"
+              className="input-field text-sm"
+              placeholder="Clique em 'Avaliar Risco / ASA' para gerar a classificação..."
+              value={formData.asaClassification || ''}
+              onChange={(e) => setFormData({...formData, asaClassification: e.target.value})}
+            />
           </div>
 
           <div className="space-y-3">
@@ -490,7 +514,7 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
             <textarea 
               rows="3" 
               className="input-field"
-              value={formData.conduct}
+              value={formData.conduct || ''}
               onChange={(e) => setFormData({...formData, conduct: e.target.value})}
             />
           </div>
