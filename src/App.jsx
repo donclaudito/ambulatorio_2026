@@ -92,7 +92,7 @@ function App() {
       }
     }
 
-    const baseRequest = (specialtyName) => `SOLICITAÇÃO DE AVALIAÇÃO ${specialtyName.toUpperCase()}\n\nPrezados colegas,\n\nSolicito avaliação ${specialtyName.toLowerCase()} pré-operatória para o paciente, visando o procedimento de ${formData.proposedProcedure}, considerando as seguintes comorbidades: ${formData.comorbidities.join(', ') || 'Nenhuma'}, uso de medicamentos: ${formData.medicationsInUse || 'Nenhum'}, classificação ASA: ${formData.asaClassification ? formData.asaClassification.split('\n')[0] : 'Não avaliada'}, e IMC: ${imcValue}.\n\nAtenciosamente.`;
+    const baseRequest = (specialtyName) => `SOLICITAÇÃO DE AVALIAÇÃO ${specialtyName.toUpperCase()}\n\nPrezados colegas,\n\nSolicito avaliação ${specialtyName.toLowerCase()} pré-operatória para o paciente, visando o procedimento de ${formData.proposedProcedure}, considerando as seguintes comorbidades: ${formData.comorbidities.join(', ') || 'Nenhuma'}, uso de medicamentos: ${formData.medicationsInUse || 'Nenhum'}, risco cirúrgico correspondente (Classificação ASA): ${formData.asaClassification ? formData.asaClassification.split('\n')[0] : 'Não avaliada'}, e IMC: ${imcValue}.\n\nAtenciosamente.`;
     
     setEvaluationRequests({
       anesthetic: baseRequest('anestésica'),

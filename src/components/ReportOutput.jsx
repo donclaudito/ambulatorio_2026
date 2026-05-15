@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Modal from './Modal';
 import { generateClinicalTextUnified } from '../services/aiService';
+import { useReactToPrint } from 'react-to-print';
 
 const ReportOutput = ({ report, evaluationRequests, onCopy }) => {
   const [isAihModalOpen, setIsAihModalOpen] = useState(false);
@@ -8,6 +9,12 @@ const ReportOutput = ({ report, evaluationRequests, onCopy }) => {
   const [generatedAih, setGeneratedAih] = useState(null);
   const [editableReport, setEditableReport] = useState(report);
   const [activeTab, setActiveTab] = useState('anesthetic');
+  const printRef = useRef();
+
+  const handlePrintRequest = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Solicitacao_Parecer`
+  });
 
   useEffect(() => {
     setEditableReport(report);
@@ -131,13 +138,22 @@ const ReportOutput = ({ report, evaluationRequests, onCopy }) => {
         </div>
         
         <div className="p-8 relative">
-          <button 
-            onClick={() => onCopy(evaluationRequests[activeTab], activeTab)}
-            className="absolute top-4 right-4 text-[10px] font-bold text-blue-600 hover:text-blue-800 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full border border-blue-100"
-          >
-            Copiar Texto
-          </button>
-          <div className="text-sm text-slate-700 whitespace-pre-wrap leading-loose font-medium italic bg-slate-50/30 p-6 rounded-2xl border border-slate-100">
+          <div className="absolute top-4 right-4 flex gap-2">
+            <button 
+              onClick={handlePrintRequest}
+              className="text-[10px] font-bold text-slate-600 hover:text-slate-800 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full border border-slate-200 flex items-center gap-1"
+              title="Gerar PDF ou Imprimir"
+            >
+              🖨️ PDF / Imprimir
+            </button>
+            <button 
+              onClick={() => onCopy(evaluationRequests[activeTab], activeTab)}
+              className="text-[10px] font-bold text-blue-600 hover:text-blue-800 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full border border-blue-100"
+            >
+              Copiar Texto
+            </button>
+          </div>
+          <div ref={printRef} className="text-sm text-slate-700 whitespace-pre-wrap leading-loose font-medium italic bg-slate-50/30 p-6 rounded-2xl border border-slate-100 print:text-black print:bg-white print:border-none print:p-4">
             {evaluationRequests[activeTab]}
           </div>
         </div>
