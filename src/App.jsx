@@ -34,7 +34,7 @@ function App() {
   const [copyStatus, setCopyStatus] = useState('');
 
   const handleGenerateReport = () => {
-    let report = `LAUDO MÉDICO\n\n`;
+    let report = `**${formData.proposedProcedure.toUpperCase()}**\n\n`;
     
     const reason = formData.primaryReason === 'Outro...' ? formData.customReason : formData.primaryReason;
     report += `Motivo do Encaminhamento: ${reason}${formData.associatedReason ? ` e ${formData.associatedReason}` : ''}\n`;

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { generateMistralReport } from '../services/mistralService';
+import { cleanAiResponse } from '../services/aiService';
 
 const MistralReportGenerator = ({ initialData, onCopy }) => {
   const [surgeryData, setSurgeryData] = useState(initialData || '');
@@ -16,11 +17,11 @@ const MistralReportGenerator = ({ initialData, onCopy }) => {
     setIsGenerating(true);
     setError('');
     
-    const prompt = `Com base nos seguintes dados da cirurgia, gere um laudo médico final completo e profissional:\n\n${surgeryData}\n\nO laudo deve incluir: Identificação da Demanda, Procedimento, Anamnese, Exame Físico, Comorbidades e Conduta.`;
+    const prompt = `Gere o laudo clínico para o seguinte caso, seguindo estritamente a estrutura e as PROIBIÇÕES definidas nas suas instruções de sistema:\n\n${surgeryData}`;
 
     try {
       const report = await generateMistralReport(prompt);
-      setGeneratedReport(report);
+      setGeneratedReport(cleanAiResponse(report));
     } catch (err) {
       setError('Erro ao gerar o laudo. Verifique sua chave de API ou conexão.');
       console.error(err);

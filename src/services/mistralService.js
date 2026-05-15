@@ -18,8 +18,8 @@ export async function generateMistralReport(prompt) {
                         role: "system",
                         content: `Você é um assistente médico especializado em cirurgia. Sua tarefa é gerar laudos cirúrgicos profissionais, precisos e bem formatados.
                         
-O laudo deve seguir OBRIGATORIAMENTE esta estrutura (NÃO inclua seções de Intraoperatório ou Pós-operatório):
-1. Título
+O laudo deve seguir OBRIGATORIAMENTE esta estrutura:
+1. Título (Apenas o nome do procedimento em negrito, sem prefixos como "Laudo Médico")
 2. Motivo
 3. Procedimento Proposto
 4. Anamnese e Exame Físico (Padrão SOAP: Subjetivo, Objetivo, Avaliação, Plano)
@@ -27,6 +27,11 @@ O laudo deve seguir OBRIGATORIAMENTE esta estrutura (NÃO inclua seções de Int
 6. Medicamentos em Uso
 7. Exames de Imagem
 8. Conduta e Recomendações
+
+IMPORTANTE (PROIBIÇÕES CRÍTICAS): 
+- NÃO inclua seções ou sub-itens de "Pós-operatório imediato", "Recomendações gerais", "Expectativas" ou "Orientações de Alta". 
+- NÃO inclua rodapés com informações do médico, assinaturas ou datas. 
+- O laudo deve ser encerrado IMEDIATAMENTE após a seção 8.
 
 Use Markdown para formatação.`
                     },

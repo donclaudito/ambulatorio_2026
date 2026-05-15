@@ -8,6 +8,7 @@ import {
   predefinedImageExams
 } from '../data/clinicalData';
 import { generateClinicalTextUnified } from '../services/aiService';
+import { getCustomReasons, saveCustomReason } from '../utils/storageUtils';
 import Modal from './Modal';
 
 const SectionHeader = ({ icon, title }) => (
@@ -21,17 +22,19 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
   const [activeModal, setActiveModal] = useState(null);
   const [modalData, setModalData] = useState({ title: '', items: [], targetField: '' });
   const [isLoading, setIsLoading] = useState({ anamnesis: false, physicalExam: false });
+  const [allReasons, setAllReasons] = useState({ ...reasonDataMap, ...getCustomReasons() });
+  const [saveStatus, setSaveStatus] = useState('');
 
   useEffect(() => {
     const primary = formData.primaryReason;
     const associated = formData.associatedReason;
     if (!primary) return;
 
-    let data = reasonDataMap[primary] || reasonDataMap["Outro..."];
+    let data = allReasons[primary] || allReasons["Outro..."];
     
     if ((primary === "Hérnia Umbilical" && associated === "Hérnia Epigástrica") ||
         (primary === "Hérnia Epigástrica" && associated === "Hérnia Umbilical")) {
-      data = reasonDataMap["Hérnia Umbilical e Epigástrica Associadas"];
+      data = allReasons["Hérnia Umbilical e Epigástrica Associadas"];
     }
 
     if (primary === "Cirurgia Ambulatorial (Dermatológica)" && activeModal !== 'dermatology') {
@@ -110,6 +113,24 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
     setActiveModal(null);
   };
 
+  const handleSaveCustomReason = () => {
+    if (!formData.customReason) return;
+    
+    const newReasonData = {
+      procedure: formData.proposedProcedure,
+      anamnesis: formData.anamnesis,
+      physicalExam: formData.physicalExam,
+      conduct: formData.conduct
+    };
+
+    const success = saveCustomReason(formData.customReason, newReasonData);
+    if (success) {
+      setAllReasons(prev => ({ ...prev, [formData.customReason]: newReasonData }));
+      setSaveStatus('Motivo salvo com sucesso!');
+      setTimeout(() => setSaveStatus(''), 3000);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* 1. Motivo e Procedimento */}
@@ -124,18 +145,29 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
               onChange={(e) => setFormData({...formData, primaryReason: e.target.value})}
             >
               <option value="">-- Selecione o motivo --</option>
-              {Object.keys(reasonDataMap).map(r => <option key={r} value={r}>{r}</option>)}
+              {Object.keys(allReasons).map(r => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
 
           {formData.primaryReason === "Outro..." && (
-            <input 
-              type="text" 
-              placeholder="Especifique o motivo..." 
-              className="input-field animate-slide-in-top"
-              value={formData.customReason}
-              onChange={(e) => setFormData({...formData, customReason: e.target.value})}
-            />
+            <div className="flex gap-2 animate-slide-in-top">
+              <input 
+                type="text" 
+                placeholder="Especifique o novo motivo..." 
+                className="input-field flex-1"
+                value={formData.customReason}
+                onChange={(e) => setFormData({...formData, customReason: e.target.value})}
+              />
+              <button
+                type="button"
+                onClick={handleSaveCustomReason}
+                disabled={!formData.customReason}
+                className="px-4 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center gap-2"
+                title="Salvar como novo modelo"
+              >
+                💾 {saveStatus ? 'Salvo!' : 'Salvar'}
+              </button>
+            </div>
           )}
 
           <div>
@@ -146,7 +178,7 @@ const SurgicalForm = ({ formData, setFormData, onGenerate, onClear }) => {
               onChange={(e) => setFormData({...formData, associatedReason: e.target.value})}
             >
               <option value="">-- Nenhum --</option>
-              {Object.keys(reasonDataMap).map(r => <option key={r} value={r}>{r}</option>)}
+              {Object.keys(allReasons).map(r => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
 
