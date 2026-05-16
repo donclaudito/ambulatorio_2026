@@ -1,0 +1,246 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import SurgicalForm from '../components/SurgicalForm';
+import ReportOutput from '../components/ReportOutput';
+import MistralReportGenerator from '../components/MistralReportGenerator';
+import ApiKeySettings from '../components/ApiKeySettings';
+import Modal from '../components/Modal';
+import { stripMarkdown } from '../utils/textUtils';
+
+const initialFormState = {
+  patientAge: '',
+  patientSex: '',
+  patientHeight: '',
+  patientWeight: '',
+  primaryReason: '',
+  customReason: '',
+  associatedReason: '',
+  proposedProcedure: '',
+  anamnesis: '',
+  physicalExam: '',
+  comorbidities: [],
+  allergyDetails: '',
+  medicationsInUse: '',
+  asaClassification: '',
+  conduct: '',
+  imageExams: [],
+  relatedDiagnoses: '',
+  cid10: ''
+};
+
+export default function SurgicalDashboard() {
+  const [formData, setFormData] = useState(initialFormState);
+  const [generatedReport, setGeneratedReport] = useState('');
+  const [activeMode, setActiveMode] = useState('standard'); 
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [evaluationRequests, setEvaluationRequests] = useState({
+    anesthetic: '',
+    cardio: '',
+    pulmo: ''
+  });
+  const [copyStatus, setCopyStatus] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [userName, setUserName] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setUserEmail(localStorage.getItem('userEmail') || '');
+    setUserName(localStorage.getItem('userName') || '');
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userName');
+    navigate('/login');
+  };
+
+  const handleGenerateReport = () => {
+    let report = `**${formData.proposedProcedure.toUpperCase()}**\n\n`;
+    
+    if (formData.cid10) {
+      report += `CID-10: ${formData.cid10}\n`;
+    }
+    
+    const reason = formData.primaryReason === 'Outro...' ? formData.customReason : formData.primaryReason;
+    report += `Motivo do Encaminhamento: ${reason}${formData.associatedReason ? ` e ${formData.associatedReason}` : ''}\n`;
+    
+    if (formData.patientAge || formData.patientSex || formData.patientWeight || formData.patientHeight) {
+      const weight = parseFloat(formData.patientWeight);
+      const height = parseFloat(formData.patientHeight) / 100;
+      const imc = (weight > 0 && height > 0) ? (weight / (height * height)).toFixed(1) : null;
+      
+      report += `Identificação: ${formData.patientSex || 'Sexo não inf.'}, ${formData.patientAge || '??'} anos`;
+      if (formData.patientWeight) report += `, Peso: ${formData.patientWeight}kg`;
+      if (formData.patientHeight) report += `, Altura: ${formData.patientHeight}cm`;
+      if (imc) report += `, IMC: ${imc}`;
+      report += `\n\n`;
+    }
+    
+    report += `Anamnese/Queixa Principal:\n${formData.anamnesis}\n\n`;
+    report += `Exame Físico:\n${formData.physicalExam}\n\n`;
+    
+    report += `Comorbidades: ${formData.comorbidities.length > 0 ? formData.comorbidities.join(', ') : 'Nenhuma conhecida'}`;
+    if (formData.allergyDetails) report += ` (Alergias: ${formData.allergyDetails})`;
+    report += `\n\n`;
+    
+    report += `Medicamentos em Uso: ${formData.medicationsInUse || 'Nenhum informado'}\n\n`;
+
+    if (formData.asaClassification) {
+      report += `Classificação ASA (Risco Cirúrgico):\n${formData.asaClassification}\n\n`;
+    }
+    
+    if (formData.imageExams.length > 0) {
+      report += `Exames de Imagem: ${formData.imageExams.join(', ')}\n`;
+    }
+    if (formData.relatedDiagnoses) {
+      report += `Diagnósticos Relacionados: ${formData.relatedDiagnoses}\n\n`;
+    } else {
+      report += `\n`;
+    }
+    
+    report += `Conduta/Recomendações:\n${formData.conduct}\n`;
+    
+    setGeneratedReport(report);
+
+    let imcValue = 'Não informado';
+    if (formData.patientWeight && formData.patientHeight) {
+      const weight = parseFloat(formData.patientWeight);
+      const height = parseFloat(formData.patientHeight) / 100;
+      if (weight > 0 && height > 0) {
+        imcValue = (weight / (height * height)).toFixed(1);
+      }
+    }
+
+    const baseRequest = (specialtyName) => `SOLICITAÇÃO DE AVALIAÇÃO ${specialtyName.toUpperCase()}\n\nPrezados colegas,\n\nSolicito avaliação ${specialtyName.toLowerCase()} pré-operatória para o paciente, visando o procedimento de ${formData.proposedProcedure}, considerando as seguintes comorbidades: ${formData.comorbidities.join(', ') || 'Nenhuma'}, uso de medicamentos: ${formData.medicationsInUse || 'Nenhum'}, risco cirúrgico correspondente (Classificação ASA): ${formData.asaClassification ? formData.asaClassification.split('\n')[0] : 'Não avaliada'}, e IMC: ${imcValue}.\n\nAtenciosamente.`;
+    
+    setEvaluationRequests({
+      anesthetic: baseRequest('anestésica'),
+      cardio: baseRequest('cardiovascular'),
+      pulmo: baseRequest('pneumológica')
+    });
+  };
+
+  const handleCopy = (text, type) => {
+    const plainText = stripMarkdown(text);
+    navigator.clipboard.writeText(plainText);
+    setCopyStatus(`Copiado como texto puro!`);
+    setTimeout(() => setCopyStatus(''), 2000);
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-50">
+      {/* Premium Navigation Bar */}
+      <nav className="glass sticky top-0 z-[100] border-b border-slate-200/50 no-print">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
+              <span className="text-xl font-bold italic">S</span>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-slate-800 tracking-tight">SurgicalReport<span className="text-blue-600">Pro</span></h1>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Clinical Strategy Portal</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex bg-slate-100 p-1 rounded-xl">
+              <button 
+                onClick={() => setActiveMode('standard')}
+                className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${activeMode === 'standard' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Laudo Padrão
+              </button>
+              <button 
+                onClick={() => setActiveMode('mistral')}
+                className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${activeMode === 'mistral' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                ✨ Mistral AI
+              </button>
+            </div>
+            <button 
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2.5 hover:bg-slate-100 text-slate-500 rounded-xl transition-colors no-print"
+              title="Configurações de API"
+            >
+              <span className="text-xl">⚙️</span>
+            </button>
+
+            {/* Informações do Usuário e Botão de Logout */}
+            <div className="flex items-center gap-3 pl-4 border-l border-slate-200 no-print">
+              <div className="hidden md:flex flex-col text-right">
+                <span className="text-xs font-bold text-slate-700 leading-none">{userName || userEmail.split('@')[0]}</span>
+                <span className="text-[10px] text-slate-400 font-mono">{userEmail}</span>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-slate-800 hover:bg-rose-600 text-white rounded-xl text-xs font-semibold transition shadow-sm active:scale-95"
+                title="Sair do Portal"
+              >
+                Sair
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <main className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-8">
+        {/* Left Side: Form (Scrollable on desktop) */}
+        <div className="w-full lg:w-[45%] no-print">
+          <SurgicalForm 
+            formData={formData} 
+            setFormData={setFormData} 
+            onGenerate={handleGenerateReport}
+            onClear={() => {
+              setFormData(initialFormState);
+              setGeneratedReport('');
+              setEvaluationRequests({ anesthetic: '', cardio: '', pulmo: '' });
+            }}
+          />
+        </div>
+        
+        {/* Right Side: Output */}
+        <div className="w-full lg:w-[55%] print:w-full">
+          {activeMode === 'mistral' ? (
+            <MistralReportGenerator 
+              initialData={generatedReport} 
+              onCopy={handleCopy}
+            />
+          ) : generatedReport ? (
+            <ReportOutput 
+              report={generatedReport} 
+              evaluationRequests={evaluationRequests}
+              cid10={formData.cid10}
+              onCopy={handleCopy}
+            />
+          ) : (
+            <div className="h-full min-h-[400px] glass rounded-3xl flex flex-col items-center justify-center text-center p-12 border-dashed border-2 border-slate-200 bg-white shadow-sm">
+              <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center text-4xl mb-6 shadow-inner">📄</div>
+              <h3 className="text-2xl font-bold text-slate-700 mb-2">Aguardando dados da consulta</h3>
+              <p className="text-slate-400 max-w-xs mx-auto text-sm leading-relaxed">
+                Preencha as informações do formulário ao lado para gerar o laudo clínico e as solicitações de avaliação.
+              </p>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* API Key Settings Modal */}
+      <Modal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        title="Configurações de API"
+      >
+        <ApiKeySettings onSave={() => {}} />
+      </Modal>
+
+      {/* Modern Toast Notification */}
+      {copyStatus && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl animate-zoom-in z-[2000] flex items-center gap-3 no-print">
+          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-[10px]">✓</div>
+          <span className="text-sm font-medium">{copyStatus}</span>
+        </div>
+      )}
+    </div>
+  );
+}

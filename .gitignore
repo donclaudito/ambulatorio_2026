@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables and scratch directories
+.env
+.env.*
+scratch_autentica/
