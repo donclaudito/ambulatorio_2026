@@ -6,11 +6,11 @@ import {
   dermatologicalDiagnosesMap, 
   commonMedications,
   predefinedImageExams
-} from '../data/clinicalData';
-import { generateClinicalTextUnified } from '../services/aiService';
-import { getCustomReasons, saveCustomReason } from '../utils/storageUtils';
-import { findReason } from '../utils/textUtils';
-import Modal from './Modal';
+} from '../../data/clinicalData';
+import { generateClinicalTextUnified } from '../../services/aiService';
+import { getCustomReasons, saveCustomReason } from '../../utils/storageUtils';
+import { findReason } from '../../utils/textUtils';
+import Modal from '../ui/Modal';
 import ProcedureSelector from './ProcedureSelector';
 
 const SectionHeader = ({ icon, title }) => (

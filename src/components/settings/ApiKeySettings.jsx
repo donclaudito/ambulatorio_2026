@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { configService } from '../services/configService';
+import { configService } from '../../services/configService';
 
 const ApiKeySettings = ({ onSave }) => {
   const [geminiKey, setGeminiKey] = useState('');

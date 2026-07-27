@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Modal from './Modal';
-import { generateClinicalTextUnified } from '../services/aiService';
+import Modal from '../ui/Modal';
+import { generateClinicalTextUnified } from '../../services/aiService';
 import { useReactToPrint } from 'react-to-print';
 
 const ReportOutput = ({ report, evaluationRequests, cid10, onCopy }) => {

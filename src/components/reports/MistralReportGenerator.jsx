@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { generateMistralReport } from '../services/mistralService';
-import { cleanAiResponse } from '../services/aiService';
+import { generateMistralReport } from '../../services/mistralService';
+import { cleanAiResponse } from '../../services/aiService';
 
 const MistralReportGenerator = ({ initialData, onCopy }) => {
   const [surgeryData, setSurgeryData] = useState(initialData || '');

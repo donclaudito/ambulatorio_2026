@@ -6,7 +6,7 @@ import ConfirmarEmail from './pages/ConfirmarEmail';
 import RecoverPassword from './pages/RecoverPassword';
 import ResetPassword from './pages/ResetPassword';
 import SurgicalDashboard from './pages/SurgicalDashboard';
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
   return (
