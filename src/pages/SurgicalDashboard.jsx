@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SurgicalForm from '../components/SurgicalForm';
-import ReportOutput from '../components/ReportOutput';
-import MistralReportGenerator from '../components/MistralReportGenerator';
-import ApiKeySettings from '../components/ApiKeySettings';
-import Modal from '../components/Modal';
+import SurgicalForm from '../components/forms/SurgicalForm';
+import ReportOutput from '../components/reports/ReportOutput';
+import MistralReportGenerator from '../components/reports/MistralReportGenerator';
+import ApiKeySettings from '../components/settings/ApiKeySettings';
+import Modal from '../components/ui/Modal';
 import { stripMarkdown } from '../utils/textUtils';
 
 const initialFormState = {
