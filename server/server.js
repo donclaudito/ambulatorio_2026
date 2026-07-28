@@ -15,7 +15,7 @@ const auth = new AuthModule({
   tokenExpiration: '1h',
   emailUser: process.env.EMAIL_USER || 'seuemail@gmail.com',
   emailPass: process.env.EMAIL_PASS || 'sua_senha_de_app_aqui',
-  siteUrl: process.env.FRONTEND_URL || 'http://localhost:5173'
+  siteUrl: process.env.FRONTEND_URL || 'http://localhost:5180'
 });
 
 // Banco de dados em memória (Com um usuário padrão para facilitar testes imediatos)
@@ -41,7 +41,6 @@ app.post('/api/auth/register', async (req, res) => {
     return res.status(400).json({ erro: 'E-mail e senha são obrigatórios' });
   }
 
-  // Verifica se usuário já existe
   const existente = usuarios.find(u => u.email === email);
   if (existente) {
     return res.status(400).json({ erro: 'Este e-mail já está cadastrado' });
@@ -51,7 +50,6 @@ app.post('/api/auth/register', async (req, res) => {
     const novoUsuario = { id: Date.now(), nome: nome || 'Usuário', email, senha, confirmado: true };
     usuarios.push(novoUsuario);
 
-    // Usa o módulo para gerar o token e enviar o e-mail de confirmação
     const token = await auth.registrarEEnviarConfirmacao(email, { id: novoUsuario.id });
     
     res.status(201).json({ 
@@ -127,7 +125,6 @@ app.post('/api/auth/reset-password', async (req, res) => {
     return res.status(404).json({ erro: 'Usuário associado ao token não encontrado' });
   }
 
-  // Atualiza a senha
   usuario.senha = novaSenha;
 
   res.status(200).json({ mensagem: 'Senha redefinida com sucesso! Você já pode fazer login.' });
@@ -159,9 +156,81 @@ app.get('/api/auth/me', (req, res) => {
   });
 });
 
+// ==========================================
+// ROTAS DE INTELIGÊNCIA ARTIFICIAL
+// ==========================================
+
+// 6. Rota para gerar laudo via IA
+app.post('/api/ia/gerar-laudo', async (req, res) => {
+  const { dadosPaciente } = req.body;
+
+  if (!dadosPaciente) {
+    return res.status(400).json({ erro: 'Dados do paciente são obrigatórios' });
+  }
+
+  try {
+    // Montar o prompt dinâmico
+    const prompt = `
+Você é um médico especialista em cirurgia atuando no Ambulatório de Cirurgia 2026.
+Gere um laudo médico profissional baseado nestes dados:
+
+${JSON.stringify(dadosPaciente, null, 2)}
+
+REGRAS OBRIGATÓRIAS:
+1. Retorne APENAS HTML válido (sem Markdown, sem \`\`\`html, sem explicações).
+2. Use CSS inline para formatação.
+3. Estrutura obrigatória com as seções: Antecedentes, Medicamentos em Uso, Exame Físico, Classificação ASA, Conduta e Recomendações.
+4. Se houver dados faltantes, exiba um alerta amarelo no topo.
+5. Use títulos com borda azul à esquerda (border-left: 4px solid #4a90e2).
+6. Inclua rodapé com aviso de que é sugestão de IA.
+    `;
+
+    // Chamada à OpenAI
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: 'Você é um assistente médico que retorna apenas HTML puro, sem Markdown.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.3
+      })
+    });
+
+    const data = await response.json();
+    
+    // Verifica se a resposta da API foi bem-sucedida
+    if (!response.ok) {
+      throw new Error(data.error?.message || 'Erro na API da OpenAI');
+    }
+
+    let laudoHTML = data.choices[0].message.content;
+
+    // Limpeza de segurança: remove blocos de código caso a IA ignore a instrução
+    laudoHTML = laudoHTML
+      .replace(/```html\s*/gi, '')
+      .replace(/```\s*/gi, '')
+      .trim();
+
+    res.json({ laudo: laudoHTML });
+
+  } catch (error) {
+    console.error('Erro ao gerar laudo:', error);
+    res.status(500).json({ erro: 'Falha ao gerar laudo via IA. Verifique sua chave de API.' });
+  }
+});
+
+// ==========================================
+// INICIALIZAÇÃO DO SERVIDOR
+// ==========================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor de Autenticação do SurgicalReportPro rodando em http://localhost:${PORT}`);
+  console.log(`🚀 Servidor de Autenticação do Ambulatório Cirurgia 2026 rodando em http://localhost:${PORT}`);
   console.log(`💡 Dica: Você pode fazer login imediatamente com: medico@hospital.com / senha123`);
-  console.log(`Configure as credenciais reais do Gmail no arquivo .env se desejar envio real de e-mails.`);
+  console.log(`Configure as credenciais reais do Gmail e OPENAI_API_KEY no arquivo .env`);
 });

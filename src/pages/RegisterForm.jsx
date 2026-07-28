@@ -66,7 +66,7 @@ export default function RegisterForm() {
             Criar Conta
           </h2>
           <p className="mt-2 text-sm text-slate-400">
-            Cadastre-se para acessar o SurgicalReportPro
+            Cadastre-se para acessar o Ambulatório Cirurgia 2026
           </p>
         </div>
 

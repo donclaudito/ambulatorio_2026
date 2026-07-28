@@ -53,12 +53,12 @@ class AuthModule {
     const mailOptions = {
       from: this.emailFrom,
       to: emailUsuario,
-      subject: 'Confirme seu cadastro no SurgicalReportPro',
+      subject: 'Confirme seu cadastro no Ambulatório Cirurgia 2026',
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background-color: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0; text-align: center;">
           <h2 style="color: #0f172a; margin-bottom: 20px; font-size: 24px;">Confirmação de Cadastro</h2>
           <p style="color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
-            Olá! Ficamos muito felizes em ter você no <strong>SurgicalReportPro</strong>. Para ativar sua conta e concluir o cadastro, por favor clique no botão abaixo:
+            Olá! Ficamos muito felizes em ter você no <strong>Ambulatório Cirurgia 2026</strong>. Para ativar sua conta e concluir o cadastro, por favor clique no botão abaixo:
           </p>
           <div style="margin: 35px 0;">
             <a href="${linkConfirmacao}" style="background-color: #2563eb; color: #ffffff; padding: 16px 36px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);">
@@ -108,12 +108,12 @@ class AuthModule {
     const mailOptions = {
       from: this.emailFrom,
       to: emailUsuario,
-      subject: 'Redefinição de Senha - SurgicalReportPro',
+      subject: 'Redefinição de Senha - Ambulatório Cirurgia 2026',
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background-color: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0; text-align: center;">
           <h2 style="color: #0f172a; margin-bottom: 20px; font-size: 24px;">Redefinição de Senha</h2>
           <p style="color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
-            Você solicitou a redefinição da sua senha no <strong>SurgicalReportPro</strong>. Clique no botão abaixo para criar uma nova senha:
+            Você solicitou a redefinição da sua senha no <strong>Ambulatório Cirurgia 2026</strong>. Clique no botão abaixo para criar uma nova senha:
           </p>
           <div style="margin: 35px 0;">
             <a href="${linkRedefinicao}" style="background-color: #0891b2; color: #ffffff; padding: 16px 36px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 14px rgba(8, 145, 178, 0.3);">
